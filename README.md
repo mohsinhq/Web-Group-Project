@@ -8,11 +8,7 @@ To run this project in your development machine, follow these steps:
 
 1. Create and activate a conda environment
 
-2. Fork this repo and clone your fork (or clone the forked repo of one of your team members), e.g.
-
-    ```console
-    $ git clone https://github.qmul.ac.uk/<username>/cwgroup
-    ```
+2. Download this repo as a zip and add the files to your own private repo.
 
 3. Install Pyhton dependencies (main folder):
 
