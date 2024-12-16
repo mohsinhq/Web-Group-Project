@@ -18,8 +18,12 @@ from django.contrib import admin
 from django.urls import include, path
 from django.http import HttpResponse
 
+from . import views
 from .views import main_spa
+
 
 urlpatterns = [
     path('', main_spa),
+    path('pageviews/', views.page_view_count, name='pageviews'),  # Endpoint for testing PageView count
+    path('users/', views.user_list, name='user_list') # Endpoint for user list (for testing purposes)
 ]
