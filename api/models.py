@@ -18,7 +18,7 @@ class CustomUser(AbstractUser):
     hobbies = models.TextField(blank=True)  # Store hobbies as comma-separated values for now
 
     def __str__(self):
-        return self.username
+        return self.name
     
     def as_dict(self):
         return {
