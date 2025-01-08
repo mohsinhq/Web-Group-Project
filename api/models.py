@@ -18,13 +18,24 @@ class CustomUser(AbstractUser):
     hobbies = models.TextField(blank=True)  # Store hobbies as comma-separated values for now
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.email})"
     
     def as_dict(self):
         return {
             'id': self.id,
             'name': self.name,
             'email': self.email,
-            'date_of_birth': self.date_of_birth,
-            'hobbies': self.hobbies,
+            'date_of_birth': self.date_of_birth.isoformat() if self.date_of_birth else None,
+            'hobbies': self.get_hobbies_list(),
         }
+
+    def get_hobbies_list(self):
+        return [hobby.strip() for hobby in self.hobbies.split(',') if hobby.strip()]
+
+    def set_hobbies_from_list(self, hobbies_list):
+        self.hobbies = ', '.join(hobbies_list)
+    
+    class Meta:
+        verbose_name = "User"
+        verbose_name_plural = "Users"
+        ordering = ['name']
