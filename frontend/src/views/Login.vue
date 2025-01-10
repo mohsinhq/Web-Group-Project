@@ -19,6 +19,10 @@
 </template>
 
 <script>
+import axios from 'axios';
+import { useUserStore } from '../stores/userStore';
+import { useRouter } from 'vue-router';
+
 export default {
   data() {
     return {
@@ -27,10 +31,25 @@ export default {
     };
   },
   methods: {
-    handleLogin() {
-      // Logic for handling login goes here
-    }
-  }
+    async handleLogin() {
+      try {
+        const response = await axios.post('/login/', {
+          email: this.email,
+          password: this.password,
+        });
+
+        // Set user data in Pinia store
+        const userStore = useUserStore();
+        userStore.setUser(response.data);
+
+        // Redirect to home page after successful login
+        this.$router.push('/');
+      } catch (error) {
+        console.error("Login failed:", error);
+        alert("Invalid email or password. Please try again.");
+      }
+    },
+  },
 };
 </script>
 

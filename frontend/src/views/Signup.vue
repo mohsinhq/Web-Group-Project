@@ -7,12 +7,28 @@
         <input type="text" v-model="username" id="username" required />
       </div>
       <div>
+        <label for="name">Name:</label>
+        <input type="text" v-model="name" id="name" required />
+      </div>
+      <div>
         <label for="email">Email:</label>
         <input type="email" v-model="email" id="email" required />
       </div>
       <div>
-        <label for="password">Password:</label>
-        <input type="password" v-model="password" id="password" required />
+        <label for="dateOfBirth">Date of Birth:</label>
+        <input type="date" v-model="dateOfBirth" id="dateOfBirth" required />
+      </div>
+      <div>
+        <label for="hobbies">Hobbies:</label>
+        <textarea v-model="hobbies" id="hobbies" rows="3" required></textarea>
+      </div>
+      <div>
+        <label for="password1">Password:</label>
+        <input type="password" v-model="password1" id="password1" required />
+      </div>
+      <div>
+        <label for="password2">Confirm Password:</label>
+        <input type="password" v-model="password2" id="password2" required />
       </div>
       <button type="submit">Sign Up</button>
     </form>
@@ -23,34 +39,60 @@
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
   data() {
     return {
       username: "",
+      name: "",
       email: "",
-      password: ""
+      dateOfBirth: "",
+      hobbies: "",
+      password1: "",
+      password2: "",
     };
   },
   methods: {
-    handleSignup() {
-      // Here you can add the logic to call your signup API and handle form submission.
-      const userData = {
-        username: this.username,
-        email: this.email,
-        password: this.password
-      };
-      console.log("User data to submit:", userData);
+    async handleSignup() {
+      try {
+        const csrfToken = document
+          .querySelector('meta[name="csrf-token"]')
+          .getAttribute("content");
 
-      // Example API call (adjust as needed based on your API setup)
-      // axios.post('/api/signup', userData)
-      //   .then(response => {
-      //     this.$router.push('/login'); // Redirect to login page after successful signup
-      //   })
-      //   .catch(error => {
-      //     console.error("There was an error signing up:", error);
-      //   });
-    }
-  }
+        const response = await axios.post(
+          "/signup/",
+          {
+            username: this.username,
+            name: this.name,
+            email: this.email,
+            date_of_birth: this.dateOfBirth,
+            hobbies: this.hobbies,
+            password1: this.password1,
+            password2: this.password2,
+          },
+          {
+            headers: {
+              "X-CSRFToken": csrfToken,
+            },
+          }
+        );
+
+        console.log("Signup successful:", response.data);
+        alert("Account created successfully! Redirecting to login...");
+        this.$router.push("/login");
+      } catch (error) {
+        console.error(
+          "Signup failed:",
+          error.response?.data?.error || error.response?.data || error
+        );
+        alert(
+          "Error creating account: " +
+            (error.response?.data?.error || "Please try again.")
+        );
+      }
+    },
+  },
 };
 </script>
 
@@ -77,7 +119,8 @@ label {
   margin-bottom: 6px;
 }
 
-input {
+input,
+textarea {
   width: 100%;
   padding: 8px;
   margin: 5px 0;

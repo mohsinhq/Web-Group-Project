@@ -24,12 +24,12 @@ from .views import main_spa
 
 
 urlpatterns = [
-    path('', main_spa),
-    path('pageviews/', views.page_view_count, name='pageviews'),  # Endpoint for testing PageView count
-    path('users/', views.user_list, name='user_list'), # Endpoint for user list (for testing purposes)
+    path('', views.main_spa, name='main_spa'),
+    path('pageviews/', views.page_view_count, name='pageviews'),
+    path('users/', views.user_list, name='user_list'),
     path('signup/', views.signup, name='signup'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
-    path('home/', views.home, name='home'),  # Home route for Vue SPA
-    path('user_data/', views.user_data, name='user_data'),  # API for fetching authenticated user data
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    path('home/', views.home, name='home'),
+    path('user_data/', views.user_data, name='user_data'),
+]
