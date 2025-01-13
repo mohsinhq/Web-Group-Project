@@ -1,27 +1,23 @@
-import { createRouter, createWebHistory } from 'vue-router';
-import { useUserStore } from '../stores/userStore';
-import Home from '../views/Home.vue';
-import Login from '../views/Login.vue';
-import Signup from '../views/Signup.vue'
+// Example of how to use Vue Router
 
-const routes = [
-  { path: '/', component: Home, name: 'Home', meta: { requiresAuth: true } },  
-  { path: '/login', component: Login, name: 'Login' },  
-  { path: '/signup', component: Signup, name: 'Signup' },
-];
+import { createRouter, createWebHistory } from 'vue-router'
 
+// 1. Define route components.
+// These can be imported from other files
+import MainPage from '../pages/MainPage.vue';
+import OtherPage from '../pages/OtherPage.vue';
+
+let base = (import.meta.env.MODE == 'development') ? import.meta.env.BASE_URL : ''
+
+// 2. Define some routes
+// Each route should map to a component.
+// We'll talk about nested routes later.
 const router = createRouter({
-  history: createWebHistory(),
-  routes,
-});
+    history: createWebHistory(base),
+    routes: [
+        { path: '/', name: 'Main Page', component: MainPage },
+        { path: '/other/', name: 'Other Page', component: OtherPage },
+    ]
+})
 
-router.beforeEach((to, from, next) => {
-  const userStore = useUserStore();
-  if (to.meta.requiresAuth && !userStore.isAuthenticated) {
-    next({ name: 'Login' });
-  } else {
-    next();
-  }
-});
-
-export default router;
+export default router
