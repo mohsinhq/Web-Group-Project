@@ -1,41 +1,44 @@
 <template>
-    <div>
-      <h1>Manage Hobbies</h1>
-      <form @submit.prevent="addHobby">
-        <input v-model="newHobby" placeholder="Add a hobby" />
-        <button type="submit">Add</button>
-      </form>
-      <ul>
-        <li v-for="hobby in hobbies" :key="hobby.id">{{ hobby.name }}</li>
-      </ul>
-    </div>
-  </template>
-  
-  <script setup lang="ts">
-  import { ref, onMounted } from 'vue';
-  
-  const hobbies = ref<any[]>([]);
-  const newHobby = ref("");
-  
-  const fetchHobbies = async () => {
-    const response = await fetch("/hobbies/");
-    const data = await response.json();
-    hobbies.value = data.hobbies;
-  };
-  
-  const addHobby = async () => {
-    if (!newHobby.value) return;
-    const response = await fetch("/hobbies/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: newHobby.value }),
+  <div>
+    <h1>Hobbies</h1>
+    <div v-if="loading">Loading...</div>
+    <div v-else-if="hobbies.length === 0">No hobbies found.</div>
+    <ul v-else>
+      <li v-for="hobby in hobbies" :key="hobby.id">{{ hobby.name }}</li>
+    </ul>
+  </div>
+</template>
+
+<script lang="ts">
+import { defineComponent, ref, onMounted } from "vue";
+
+interface Hobby {
+  id: number;
+  name: string;
+}
+
+export default defineComponent({
+  setup() {
+    const hobbies = ref<Hobby[]>([]);
+    const loading = ref(true);
+
+    onMounted(async () => {
+      try {
+        const response = await fetch("/hobbies/");
+        if (response.ok) {
+          const data = await response.json();
+          hobbies.value = data.hobbies || []; // Use fallback if `hobbies` is not defined
+        } else {
+          console.error("Failed to fetch hobbies:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Error fetching hobbies:", error);
+      } finally {
+        loading.value = false;
+      }
     });
-    if (response.ok) {
-      await fetchHobbies();
-      newHobby.value = "";
-    }
-  };
-  
-  onMounted(fetchHobbies);
-  </script>
-  
+
+    return { hobbies, loading };
+  },
+});
+</script>

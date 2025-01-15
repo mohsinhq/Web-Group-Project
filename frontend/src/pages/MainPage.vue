@@ -1,20 +1,37 @@
 <template>
-  <div class="h1">
-    {{ title }}
+  <div>
+    <h1>Welcome to the Hobbies App</h1>
+    <p v-if="userData">Hello, {{ userData.name }}</p>
+    <p v-else>Loading user data...</p>
   </div>
 </template>
 
 <script lang="ts">
-    import { defineComponent } from "vue";
+import { defineComponent, ref, onMounted } from "vue";
 
-    export default defineComponent({
-        data() {
-            return {
-                title: "Main Page",
-            }
+interface UserData {
+  name: string;
+  email: string;
+  date_of_birth: string;
+  hobbies: string;
+}
+
+export default defineComponent({
+  setup() {
+    const userData = ref<UserData | null>(null);
+
+    onMounted(async () => {
+      try {
+        const response = await fetch("/user-data/");
+        if (response.ok) {
+          userData.value = await response.json();
         }
-    })
-</script>
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    });
 
-<style scoped>
-</style>
+    return { userData };
+  },
+});
+</script>

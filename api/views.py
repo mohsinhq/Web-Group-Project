@@ -1,29 +1,31 @@
-from django.http import HttpResponse, HttpRequest, JsonResponse
+from django.http import HttpResponse, HttpRequest, JsonResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
-from .forms import CustomUserCreationForm, CustomUserChangeForm
-from django.contrib.auth.forms import UserChangeForm
 from django.views.decorators.csrf import csrf_exempt
+from django.urls import reverse
+from django.conf import settings
+from .forms import CustomUserCreationForm
 from .models import Hobby
-from django.core.exceptions import ValidationError
 import json
-
+from django.urls import reverse
 
 def main_spa(request: HttpRequest) -> HttpResponse:
-    """Render the main Single Page Application."""
-    return render(request, 'api/spa/index.html', {})
+    """Redirect to login page and force logout for new session."""
+    if request.user.is_authenticated:
+        logout(request)  # Log out the user if logged in
+    return redirect(reverse('api:login'))  # Include namespace if defined
 
 @login_required
 def get_user_data(request: HttpRequest) -> JsonResponse:
     """API endpoint to fetch authenticated user data."""
     user = request.user
     return JsonResponse({
-        "name": user.name,
-        "email": user.email,
-        "date_of_birth": user.date_of_birth,
-        "hobbies": user.hobbies,
+        "name": getattr(user, "name", ""),
+        "email": getattr(user, "email", ""),
+        "date_of_birth": getattr(user, "date_of_birth", ""),
+        "hobbies": getattr(user, "hobbies", ""),
     })
 
 def signup_view(request: HttpRequest) -> HttpResponse:
@@ -31,9 +33,8 @@ def signup_view(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user)  # Log the user in after signup
-            return redirect('/')  # Redirect to the SPA
+            form.save()  # Save the new user but do NOT log them in
+            return redirect(reverse('login'))  # Redirect to login
     else:
         form = CustomUserCreationForm()
     return render(request, 'api/signup.html', {'form': form})
@@ -44,8 +45,8 @@ def login_view(request: HttpRequest) -> HttpResponse:
         form = AuthenticationForm(data=request.POST)
         if form.is_valid():
             user = form.get_user()
-            login(request, user)  # Log the user in
-            return redirect('/')  # Redirect to the SPA
+            login(request, user)
+            return HttpResponseRedirect(settings.FRONTEND_URL)  # Redirect to frontend
     else:
         form = AuthenticationForm()
     return render(request, 'api/login.html', {'form': form})
@@ -53,41 +54,37 @@ def login_view(request: HttpRequest) -> HttpResponse:
 def logout_view(request: HttpRequest) -> HttpResponse:
     """Logout a user and redirect to the login page."""
     logout(request)
-    return redirect('/login/')
+    return redirect(reverse('login'))
 
 @login_required
-def profile_view(request: HttpRequest) -> HttpResponse:
-    """Render and handle the profile page."""
+def profile_view(request: HttpRequest) -> JsonResponse:
+    """Handle GET and POST requests for user profile."""
     if request.method == "POST":
-        form = CustomUserChangeForm(request.POST, instance=request.user)
-        if form.is_valid():
-            form.save()
-            return redirect('/')  # Redirect back to SPA
-    else:
-        form = CustomUserChangeForm(instance=request.user)
-        form.fields.pop('password', None)  # Exclude the password field from the form
-    return render(request, 'api/profile.html', {'form': form})
-
-
-@csrf_exempt
-def hobbies_view(request):
-    if request.method == 'GET':
-        hobbies = Hobby.objects.all()
-        hobby_data = [{"id": hobby.id, "name": hobby.name} for hobby in hobbies]
-        return JsonResponse(hobby_data, safe=False)
-
-    elif request.method == 'POST':
         try:
             data = json.loads(request.body)
-            hobby_name = data.get('name')
-            new_hobby = Hobby.objects.create(name=hobby_name)
-            return JsonResponse({"id": new_hobby.id, "name": new_hobby.name}, status=201)
+            user = request.user
+            user.name = data.get("name", user.name)
+            user.email = data.get("email", user.email)
+            user.date_of_birth = data.get("date_of_birth", user.date_of_birth)
+            user.hobbies = data.get("hobbies", user.hobbies)
+            user.save()
+            return JsonResponse({"message": "Profile updated successfully"})
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
+    elif request.method == "GET":
+        user = request.user
+        return JsonResponse({
+            "name": user.name,
+            "email": user.email,
+            "date_of_birth": user.date_of_birth,
+            "hobbies": user.hobbies
+        })
+    return JsonResponse({"error": "Invalid request method"}, status=405)
 
 @csrf_exempt
 @login_required
 def hobbies_api(request):
+    """API endpoint for managing hobbies."""
     if request.method == "GET":
         hobbies = Hobby.objects.all().values("id", "name")
         return JsonResponse({"hobbies": list(hobbies)}, safe=False)
@@ -96,13 +93,10 @@ def hobbies_api(request):
             data = json.loads(request.body)
             hobby_name = data.get("name")
             hobby, created = Hobby.objects.get_or_create(name=hobby_name)
-            if created:
-                # Return hobby data when it's created
-                return JsonResponse({"message": "Hobby added successfully", "hobby": {"id": hobby.id, "name": hobby.name}}, status=201)
-            else:
-                return JsonResponse({"error": "Hobby already exists"}, status=400)
-        except ValidationError as e:
+            return JsonResponse({
+                "message": "Hobby added successfully",
+                "hobby": {"id": hobby.id, "name": hobby.name}
+            }, status=201)
+        except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
-        except Exception:
-            return JsonResponse({"error": "Invalid data"}, status=400)
     return JsonResponse({"error": "Invalid request method"}, status=405)

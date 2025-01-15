@@ -1,23 +1,18 @@
 <template>
-    <main class="container pt-4">
-      <div>
-        <router-link :to="{ name: 'MainPage' }">Main Page</router-link> |
-        <router-link :to="{ name: 'OtherPage' }">Other Page</router-link> |
-        <router-link :to="{ name: 'HobbiesPage' }">Hobbies Page</router-link>
-      </div>
-      <RouterView class="flex-shrink-0" />
-    </main>
-  </template>
-  
-  <script lang="ts">
-  import { defineComponent } from "vue";
-  import { RouterView } from "vue-router";
-  
-  export default defineComponent({
-    components: { RouterView },
-  });
-  </script>
-  
-  <style scoped>
-  </style>
-  
+  <div>
+    <nav>
+      <router-link to="/">Main Page</router-link> |
+      <router-link to="/other">Other Page</router-link> |
+      <router-link to="/hobbies">Hobbies Page</router-link> |
+      <router-link to="/profile">Profile Page</router-link> |
+      <a href="/logout">Logout</a> <!-- Add logout -->
+    </nav>
+    <RouterView />
+  </div>
+</template>
+
+<script lang="ts">
+import { defineComponent } from "vue";
+
+export default defineComponent({});
+</script>

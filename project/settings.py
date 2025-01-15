@@ -21,9 +21,9 @@ SECRET_KEY = os.getenv(
     'django-insecure-8^fq+a!kh-4pm8#y(urc^&zum$01nvb69$s=vnif(#gn6o7)_!'
 )
 
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -53,7 +53,7 @@ ROOT_URLCONF = 'project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # Custom templates dir
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -87,6 +87,8 @@ USE_I18N = True
 
 USE_TZ = True
 
+FRONTEND_URL = os.getenv('FRONTEND_URL', "http://localhost:5173/")
+
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
@@ -96,7 +98,8 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 INTERNAL_IPS = ['127.0.0.1']
 
-# Custom User Model
 AUTH_USER_MODEL = 'api.CustomUser'
 
-CORS_ALLOW_ALL_ORIGINS = True #NARROW THIS DOWN LATER
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # Add other allowed origins here for production
+]

@@ -1,7 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import MainPage from '../pages/MainPage.vue';
 import OtherPage from '../pages/OtherPage.vue';
-import HobbiesPage from '../pages/HobbiesPage.vue'; // Import HobbiesPage.vue
+import HobbiesPage from '../pages/HobbiesPage.vue';
+import ProfilePage from '../pages/ProfilePage.vue';
 
 const routes = [
   {
@@ -16,13 +17,18 @@ const routes = [
   },
   {
     path: '/hobbies',
-    name: 'HobbiesPage', // Ensure the /hobbies route is defined
+    name: 'HobbiesPage',
     component: HobbiesPage,
+  },
+  {
+    path: '/profile',
+    name: 'ProfilePage',
+    component: ProfilePage,
   },
 ];
 
 const router = createRouter({
-  history: createWebHistory(process.env.BASE_URL),
+  history: createWebHistory(),
   routes,
 });
 
