@@ -1,66 +1,91 @@
-/// <reference types=".vue-global-types/vue_3.5_false.d.ts" />
-import { defineComponent } from "vue";
-import { RouterView } from "vue-router";
-export default defineComponent({
-    components: { RouterView },
-});
-;
+/// <reference types="../node_modules/.vue-global-types/vue_3.5_false.d.ts" />
+export default (await import('vue')).defineComponent({});
+; /* PartiallyEnd: #3632/script.vue */
 function __VLS_template() {
     const __VLS_ctx = {};
-    const __VLS_localComponents = {
-        ...{ RouterView },
-        ...{},
-        ...__VLS_ctx,
-    };
     let __VLS_components;
-    const __VLS_localDirectives = {
-        ...{},
-        ...__VLS_ctx,
-    };
     let __VLS_directives;
-    let __VLS_styleScopedClasses;
+    ['nav-link',];
     // CSS variable injection 
     // CSS variable injection end 
-    let __VLS_resolvedLocalAndGlobalComponents;
-    __VLS_elementAsFunction(__VLS_intrinsicElements.main, __VLS_intrinsicElements.main)({ ...{ class: ("container pt-4") }, });
     __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({});
-    const __VLS_0 = __VLS_resolvedLocalAndGlobalComponents.RouterLink;
-    /** @type { [typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, ] } */
+    __VLS_elementAsFunction(__VLS_intrinsicElements.nav, __VLS_intrinsicElements.nav)({
+        ...{ class: ("navbar") },
+    });
+    const __VLS_0 = {}.RouterLink;
+    /** @type { [typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, ] } */ ;
     // @ts-ignore
-    const __VLS_1 = __VLS_asFunctionalComponent(__VLS_0, new __VLS_0({ to: (({ name: 'MainPage' })), }));
-    const __VLS_2 = __VLS_1({ to: (({ name: 'MainPage' })), }, ...__VLS_functionalComponentArgsRest(__VLS_1));
-    __VLS_nonNullable(__VLS_5.slots).default;
-    const __VLS_5 = __VLS_pickFunctionalComponentCtx(__VLS_0, __VLS_2);
-    const __VLS_6 = __VLS_resolvedLocalAndGlobalComponents.RouterLink;
-    /** @type { [typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, ] } */
+    const __VLS_1 = __VLS_asFunctionalComponent(__VLS_0, new __VLS_0({
+        to: ("/"),
+        ...{ class: ("nav-link") },
+    }));
+    const __VLS_2 = __VLS_1({
+        to: ("/"),
+        ...{ class: ("nav-link") },
+    }, ...__VLS_functionalComponentArgsRest(__VLS_1));
+    __VLS_5.slots.default;
+    var __VLS_5;
+    const __VLS_6 = {}.RouterLink;
+    /** @type { [typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, ] } */ ;
     // @ts-ignore
-    const __VLS_7 = __VLS_asFunctionalComponent(__VLS_6, new __VLS_6({ to: (({ name: 'OtherPage' })), }));
-    const __VLS_8 = __VLS_7({ to: (({ name: 'OtherPage' })), }, ...__VLS_functionalComponentArgsRest(__VLS_7));
-    __VLS_nonNullable(__VLS_11.slots).default;
-    const __VLS_11 = __VLS_pickFunctionalComponentCtx(__VLS_6, __VLS_8);
-    const __VLS_12 = __VLS_resolvedLocalAndGlobalComponents.RouterLink;
-    /** @type { [typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, ] } */
+    const __VLS_7 = __VLS_asFunctionalComponent(__VLS_6, new __VLS_6({
+        to: ("/other"),
+        ...{ class: ("nav-link") },
+    }));
+    const __VLS_8 = __VLS_7({
+        to: ("/other"),
+        ...{ class: ("nav-link") },
+    }, ...__VLS_functionalComponentArgsRest(__VLS_7));
+    __VLS_11.slots.default;
+    var __VLS_11;
+    const __VLS_12 = {}.RouterLink;
+    /** @type { [typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, ] } */ ;
     // @ts-ignore
-    const __VLS_13 = __VLS_asFunctionalComponent(__VLS_12, new __VLS_12({ to: (({ name: 'HobbiesPage' })), }));
-    const __VLS_14 = __VLS_13({ to: (({ name: 'HobbiesPage' })), }, ...__VLS_functionalComponentArgsRest(__VLS_13));
-    __VLS_nonNullable(__VLS_17.slots).default;
-    const __VLS_17 = __VLS_pickFunctionalComponentCtx(__VLS_12, __VLS_14);
-    const __VLS_18 = __VLS_resolvedLocalAndGlobalComponents.RouterView;
-    /** @type { [typeof __VLS_components.RouterView, ] } */
+    const __VLS_13 = __VLS_asFunctionalComponent(__VLS_12, new __VLS_12({
+        to: ("/hobbies"),
+        ...{ class: ("nav-link") },
+    }));
+    const __VLS_14 = __VLS_13({
+        to: ("/hobbies"),
+        ...{ class: ("nav-link") },
+    }, ...__VLS_functionalComponentArgsRest(__VLS_13));
+    __VLS_17.slots.default;
+    var __VLS_17;
+    const __VLS_18 = {}.RouterLink;
+    /** @type { [typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, ] } */ ;
     // @ts-ignore
-    const __VLS_19 = __VLS_asFunctionalComponent(__VLS_18, new __VLS_18({ ...{ class: ("flex-shrink-0") }, }));
-    const __VLS_20 = __VLS_19({ ...{ class: ("flex-shrink-0") }, }, ...__VLS_functionalComponentArgsRest(__VLS_19));
-    __VLS_styleScopedClasses['container'];
-    __VLS_styleScopedClasses['pt-4'];
-    __VLS_styleScopedClasses['flex-shrink-0'];
+    const __VLS_19 = __VLS_asFunctionalComponent(__VLS_18, new __VLS_18({
+        to: ("/profile"),
+        ...{ class: ("nav-link") },
+    }));
+    const __VLS_20 = __VLS_19({
+        to: ("/profile"),
+        ...{ class: ("nav-link") },
+    }, ...__VLS_functionalComponentArgsRest(__VLS_19));
+    __VLS_23.slots.default;
+    var __VLS_23;
+    __VLS_elementAsFunction(__VLS_intrinsicElements.a, __VLS_intrinsicElements.a)({
+        href: ("api/logout"),
+        ...{ class: ("nav-link") },
+    });
+    const __VLS_24 = {}.RouterView;
+    /** @type { [typeof __VLS_components.RouterView, typeof __VLS_components.routerView, ] } */ ;
+    // @ts-ignore
+    const __VLS_25 = __VLS_asFunctionalComponent(__VLS_24, new __VLS_24({}));
+    const __VLS_26 = __VLS_25({}, ...__VLS_functionalComponentArgsRest(__VLS_25));
+    ['navbar', 'nav-link', 'nav-link', 'nav-link', 'nav-link', 'nav-link',];
     var __VLS_slots;
-    var __VLS_inheritedAttrs;
+    var $slots;
+    let __VLS_inheritedAttrs;
+    var $attrs;
     const __VLS_refs = {};
     var $refs;
+    var $el;
     return {
+        attrs: {},
         slots: __VLS_slots,
         refs: $refs,
-        attrs: {},
+        rootEl: $el,
     };
 }
 ;

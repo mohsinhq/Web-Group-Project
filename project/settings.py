@@ -14,17 +14,22 @@ from . import database
 import os
 from pathlib import Path
 
+# Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Secret Key
 SECRET_KEY = os.getenv(
     'DJANGO_SECRET_KEY',
     'django-insecure-8^fq+a!kh-4pm8#y(urc^&zum$01nvb69$s=vnif(#gn6o7)_!'
 )
 
+# Debug Mode
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
+# Allowed Hosts
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 
+# Installed Apps
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -36,24 +41,27 @@ INSTALLED_APPS = [
     'corsheaders',
 ]
 
+# Middleware
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Place above CommonMiddleware for CORS
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
 
+# URL Configuration
 ROOT_URLCONF = 'project.urls'
 
+# Templates
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # Custom templates dir
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # Custom templates directory
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -66,12 +74,15 @@ TEMPLATES = [
     },
 ]
 
+# WSGI Application
 WSGI_APPLICATION = 'project.wsgi.application'
 
+# Database Configuration
 DATABASES = {
     'default': database.config()
 }
 
+# Authentication Password Validators
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -79,27 +90,39 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+# Internationalization
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-FRONTEND_URL = os.getenv('FRONTEND_URL', "http://localhost:5173/")
-
-STATIC_URL = 'static/'
+# Static Files
+STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-INTERNAL_IPS = ['127.0.0.1']
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'api', 'static'),  # Directory for Vue build files
+]
 
+# Media Files (Optional)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Login and Authentication
+LOGIN_URL = '/login/'
 AUTH_USER_MODEL = 'api.CustomUser'
 
+# CORS Configuration
+CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Add other allowed origins here for production
+    "http://localhost:5173",  # Allow frontend origin in development
+    "http://127.0.0.1:8000",  # Add backend origin if frontend and backend are served together
 ]
+
+# Internal IPs for Debug Toolbar (Optional)
+INTERNAL_IPS = ['127.0.0.1']
+
+# Frontend URL (Redirect for Login)
+FRONTEND_URL = os.getenv('FRONTEND_URL', "http://127.0.0.1:8000/")

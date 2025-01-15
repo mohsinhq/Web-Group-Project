@@ -13,20 +13,25 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.urls import path
-from .views import main_spa, get_user_data, login_view, logout_view, signup_view, profile_view, hobbies_api
-from django.contrib.auth import views as auth_views
 
-app_name = 'api'  # Namespacing for reverse lookups
+from django.urls import path
+from .views import main_spa, login_view, logout_view, signup_view, profile_view, hobbies_api, get_user_data
+
+app_name = 'api'
 
 urlpatterns = [
-    path('', main_spa, name='main-spa'),  # Main SPA route
-    path('user-data/', get_user_data, name='user-data'),  # Fetch user data
-    path('signup/', signup_view, name='signup'),  # Signup page
-    path('login/', login_view, name='login'),  # Login page
-    path('logout/', logout_view, name='logout'),  # Logout page
-    path('profile/', profile_view, name='profile'),  # User profile API
+    path('', main_spa, name='main-spa'),  # Main SPA
+    path('login/', login_view, name='login'),  # Login
+    path('logout/', logout_view, name='logout'),  # Logout
+    path('signup/', signup_view, name='signup'),  # Signup
+    path('profile/', profile_view, name='profile'),  # Profile API
     path('hobbies/', hobbies_api, name='hobbies-api'),  # Hobbies API
+    path('user-data/', get_user_data, name='user-data'),  # User Data API
 ]
+
+
+
+
+
 
 

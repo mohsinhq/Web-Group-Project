@@ -9,56 +9,80 @@ from django.conf import settings
 from .forms import CustomUserCreationForm
 from .models import Hobby
 import json
-from django.urls import reverse
+from django.contrib.auth.decorators import login_required
+from django.http import HttpRequest, HttpResponse
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
 
-def main_spa(request: HttpRequest) -> HttpResponse:
-    """Redirect to login page and force logout for new session."""
-    if request.user.is_authenticated:
-        logout(request)  # Log out the user if logged in
-    return redirect(reverse('api:login'))  # Include namespace if defined
 
-@login_required
-def get_user_data(request: HttpRequest) -> JsonResponse:
-    """API endpoint to fetch authenticated user data."""
-    user = request.user
-    return JsonResponse({
-        "name": getattr(user, "name", ""),
-        "email": getattr(user, "email", ""),
-        "date_of_birth": getattr(user, "date_of_birth", ""),
-        "hobbies": getattr(user, "hobbies", ""),
-    })
 
-def signup_view(request: HttpRequest) -> HttpResponse:
-    """Render the signup page and handle user registration."""
-    if request.method == "POST":
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()  # Save the new user but do NOT log them in
-            return redirect(reverse('login'))  # Redirect to login
-    else:
-        form = CustomUserCreationForm()
-    return render(request, 'api/signup.html', {'form': form})
+def main_spa(request):
+    if not request.user.is_authenticated:
+        return redirect('api:login')  # Redirect to login if user is not authenticated
+    return render(request, 'api/spa/index.html')
 
-def login_view(request: HttpRequest) -> HttpResponse:
-    """Render the login page and handle user authentication."""
+def login_view(request):
     if request.method == "POST":
         form = AuthenticationForm(data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            return HttpResponseRedirect(settings.FRONTEND_URL)  # Redirect to frontend
+            return redirect('api:main-spa')  # Redirect to main SPA
     else:
         form = AuthenticationForm()
     return render(request, 'api/login.html', {'form': form})
 
-def logout_view(request: HttpRequest) -> HttpResponse:
-    """Logout a user and redirect to the login page."""
+def logout_view(request):
     logout(request)
-    return redirect(reverse('login'))
+    return redirect(reverse('api:login'))  # Redirect to login after logout
+
+
+@login_required
+def hobbies_api(request: HttpRequest) -> JsonResponse:
+    """
+    API endpoint to retrieve all hobbies.
+    """
+    if request.method == "GET":
+        hobbies = Hobby.objects.all().values("id", "name")
+        return JsonResponse({"hobbies": list(hobbies)}, safe=False)
+    return JsonResponse({"error": "Invalid request method"}, status=405)
+
+
+def get_user_data(request: HttpRequest) -> JsonResponse:
+    """
+    API endpoint to retrieve authenticated user data.
+    """
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "Unauthorized"}, status=401)
+    user = request.user
+    return JsonResponse({
+        "name": user.name,
+        "email": user.email,
+        "date_of_birth": user.date_of_birth,
+        "hobbies": list(user.user_hobbies.values("id", "name")),  # Fixed hobbies to reflect ManyToMany relation
+    })
+
+
+def signup_view(request: HttpRequest) -> HttpResponse:
+    """
+    Handles user signup and registration.
+    """
+    if request.method == "POST":
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()  # Save the new user but do NOT log them in
+            return redirect(reverse('api:login'))  # Redirect to login
+    else:
+        form = CustomUserCreationForm()
+    return render(request, 'api/signup.html', {'form': form})
+
+
 
 @login_required
 def profile_view(request: HttpRequest) -> JsonResponse:
-    """Handle GET and POST requests for user profile."""
+    """
+    Handles GET and POST requests for user profile data.
+    """
     if request.method == "POST":
         try:
             data = json.loads(request.body)
@@ -66,7 +90,11 @@ def profile_view(request: HttpRequest) -> JsonResponse:
             user.name = data.get("name", user.name)
             user.email = data.get("email", user.email)
             user.date_of_birth = data.get("date_of_birth", user.date_of_birth)
-            user.hobbies = data.get("hobbies", user.hobbies)
+
+            # Update ManyToMany relationship for hobbies
+            hobbies = data.get("hobbies", [])
+            user.user_hobbies.set(Hobby.objects.filter(id__in=hobbies))
+
             user.save()
             return JsonResponse({"message": "Profile updated successfully"})
         except Exception as e:
@@ -77,26 +105,6 @@ def profile_view(request: HttpRequest) -> JsonResponse:
             "name": user.name,
             "email": user.email,
             "date_of_birth": user.date_of_birth,
-            "hobbies": user.hobbies
+            "hobbies": list(user.user_hobbies.values("id", "name")),  # Send hobbies as a list
         })
-    return JsonResponse({"error": "Invalid request method"}, status=405)
-
-@csrf_exempt
-@login_required
-def hobbies_api(request):
-    """API endpoint for managing hobbies."""
-    if request.method == "GET":
-        hobbies = Hobby.objects.all().values("id", "name")
-        return JsonResponse({"hobbies": list(hobbies)}, safe=False)
-    elif request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            hobby_name = data.get("name")
-            hobby, created = Hobby.objects.get_or_create(name=hobby_name)
-            return JsonResponse({
-                "message": "Hobby added successfully",
-                "hobby": {"id": hobby.id, "name": hobby.name}
-            }, status=201)
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
     return JsonResponse({"error": "Invalid request method"}, status=405)

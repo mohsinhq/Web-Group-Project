@@ -25,6 +25,10 @@ const routes = [
     name: 'ProfilePage',
     component: ProfilePage,
   },
+  {
+    path: '/:pathMatch(.*)*', // Fallback route for unmatched paths
+    redirect: '/',
+  },
 ];
 
 const router = createRouter({

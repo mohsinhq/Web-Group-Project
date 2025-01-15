@@ -4,7 +4,14 @@ from .models import CustomUser, Hobby
 
 
 class CustomUserCreationForm(UserCreationForm):
-    date_of_birth = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
+    """
+    Form for creating a new user, extending the default UserCreationForm.
+    Includes additional fields: date_of_birth and hobbies.
+    """
+    date_of_birth = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date'}),
+        required=False
+    )
     hobbies = forms.ModelMultipleChoiceField(
         queryset=Hobby.objects.all(),
         widget=forms.CheckboxSelectMultiple,
@@ -17,7 +24,14 @@ class CustomUserCreationForm(UserCreationForm):
 
 
 class CustomUserChangeForm(UserChangeForm):
-    date_of_birth = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
+    """
+    Form for updating an existing user, extending the default UserChangeForm.
+    Includes additional fields: date_of_birth and hobbies.
+    """
+    date_of_birth = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date'}),
+        required=False
+    )
     hobbies = forms.ModelMultipleChoiceField(
         queryset=Hobby.objects.all(),
         widget=forms.CheckboxSelectMultiple,
