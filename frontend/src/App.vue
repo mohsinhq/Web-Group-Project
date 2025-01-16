@@ -12,7 +12,41 @@
 </template>
 
 <script lang="ts">
-export default {};
+import { defineComponent } from "vue";
+import { RouterView } from "vue-router";
+import MainPage from './pages/OtherPage.vue';
+import OtherPage from './pages/OtherPage.vue';
+
+const baseUrl = 'http://localhost:8000/api';
+
+export default {
+    components: {
+        OtherPage,
+    },
+    data() {
+        return {
+            title: 'Users',
+            users: [],
+            newUser: {
+                name: '',
+                email: '',
+                date_of_birth: '',
+                hobbies: '',
+            },
+        };
+    },
+    async mounted() {
+        try {
+            const userResponse = await fetch(`${baseUrl}/users/`);
+            
+            const userData = await userResponse.json();
+
+            this.users = userData.users;
+        } catch (error) {
+        console.error('Error loading data:', error);
+        }
+    },
+};
 </script>
 
 <style scoped>

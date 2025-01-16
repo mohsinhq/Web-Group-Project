@@ -1,8 +1,39 @@
 /// <reference types="../node_modules/.vue-global-types/vue_3.5_false.d.ts" />
-export default (await import('vue')).defineComponent({});
+import OtherPage from './pages/OtherPage.vue';
+const baseUrl = 'http://localhost:8000/api';
+export default (await import('vue')).defineComponent({
+    components: {
+        OtherPage,
+    },
+    data() {
+        return {
+            title: 'Users',
+            users: [],
+            newUser: {
+                name: '',
+                email: '',
+                date_of_birth: '',
+                hobbies: '',
+            },
+        };
+    },
+    async mounted() {
+        try {
+            const userResponse = await fetch(`${baseUrl}/users/`);
+            const userData = await userResponse.json();
+            this.users = userData.users;
+        }
+        catch (error) {
+            console.error('Error loading data:', error);
+        }
+    },
+});
 ; /* PartiallyEnd: #3632/script.vue */
 function __VLS_template() {
     const __VLS_ctx = {};
+    const __VLS_componentsOption = {
+        OtherPage,
+    };
     let __VLS_components;
     let __VLS_directives;
     ['nav-link',];

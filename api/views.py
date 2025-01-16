@@ -7,8 +7,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse
 from django.conf import settings
 from .forms import CustomUserCreationForm
-from .models import Hobby
+from .models import Hobby, CustomUser
 import json
+from django.core.paginator import Paginator
+from datetime import datetime, timedelta
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, redirect
@@ -108,3 +110,46 @@ def profile_view(request: HttpRequest) -> JsonResponse:
             "hobbies": list(user.user_hobbies.values("id", "name")),  # Send hobbies as a list
         })
     return JsonResponse({"error": "Invalid request method"}, status=405)
+
+def user_list(request):
+    min_age = request.GET.get('min_age')
+    max_age = request.GET.get('max_age')
+
+    users = CustomUser.objects.all()
+
+    if min_age:
+        users = users.filter(date_of_birth__lte=datetime.now() - timedelta(days=int(min_age) * 365))
+    if max_age:
+        users = users.filter(date_of_birth__gte=datetime.now() - timedelta(days=int(max_age) * 365))
+
+    users_with_similarity = []
+
+    for user in users:
+        similarity_list = []
+
+        for other_user in users:
+            if user != other_user:
+                common_hobbies_count = user.common_hobbies(other_user)
+                similarity_list.append({
+                    'user': other_user.as_dict(),
+                    'common_hobbies': common_hobbies_count,
+                })
+
+        sorted_similarity = sorted(similarity_list, key=lambda x: x['common_hobbies'], reverse=True)
+
+        users_with_similarity.append({
+            'user': user.as_dict(),
+            'similar_users': sorted_similarity[:10],
+        })
+
+    page_number = request.GET.get('page', 1)
+    per_page = int(request.GET.get('per_page', 10))
+    paginator = Paginator(users_with_similarity, per_page)
+    page = paginator.get_page(page_number)
+
+    return JsonResponse({
+        'users': page.object_list,
+        'total_pages': paginator.num_pages,
+        'current_page': page.number,
+    })
+

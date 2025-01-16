@@ -21,7 +21,7 @@ class CustomUserAdmin(UserAdmin):
     Extends the default UserAdmin to include additional fields.
     """
     fieldsets = UserAdmin.fieldsets + (
-        (None, {'fields': ('name', 'date_of_birth')}),
+        (None, {'fields': ('name', 'date_of_birth', 'hobbies')}),
     )
     list_display = ['username', 'email', 'name', 'is_staff', 'is_active']
     search_fields = ['username', 'email', 'name']

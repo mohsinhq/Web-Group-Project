@@ -16,6 +16,7 @@ Including another URLconf
 
 from django.urls import path
 from .views import main_spa, login_view, logout_view, signup_view, profile_view, hobbies_api, get_user_data
+from . import views
 
 app_name = 'api'
 
@@ -27,6 +28,7 @@ urlpatterns = [
     path('profile/', profile_view, name='profile'),  # Profile API
     path('hobbies/', hobbies_api, name='hobbies-api'),  # Hobbies API
     path('user-data/', get_user_data, name='user-data'),  # User Data API
+    path('users/', views.user_list, name='user_list'),
 ]
 
 
