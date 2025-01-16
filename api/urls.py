@@ -13,23 +13,27 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.conf import settings
-from django.conf.urls.static import static
-from django.contrib import admin
-from django.urls import include, path
-from django.http import HttpResponse
 
+from django.urls import path
+from .views import main_spa, login_view, logout_view, signup_view, profile_view, hobbies_api, get_user_data
 from . import views
-from .views import main_spa
 
+app_name = 'api'
 
 urlpatterns = [
-    path('', main_spa),
-    path('pageviews/', views.page_view_count, name='pageviews'),  # Endpoint for testing PageView count
-    path('users/', views.user_list, name='user_list'), # Endpoint for user list (for testing purposes)
-    path('signup/', views.signup, name='signup'),
-    path('login/', views.login_view, name='login'),
-    path('logout/', views.logout_view, name='logout'),
-    path('home/', views.home, name='home'),  # Home route for Vue SPA
-    path('user_data/', views.user_data, name='user_data'),  # API for fetching authenticated user data
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    path('', main_spa, name='main-spa'),  # Main SPA
+    path('login/', login_view, name='login'),  # Login
+    path('logout/', logout_view, name='logout'),  # Logout
+    path('signup/', signup_view, name='signup'),  # Signup
+    path('profile/', profile_view, name='profile'),  # Profile API
+    path('hobbies/', hobbies_api, name='hobbies-api'),  # Hobbies API
+    path('user-data/', get_user_data, name='user-data'),  # User Data API
+    path('users/', views.user_list, name='user_list'),
+]
+
+
+
+
+
+
+

@@ -1,131 +1,155 @@
-from django.http import HttpResponse, HttpRequest, JsonResponse
-from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponse, HttpRequest, JsonResponse, HttpResponseRedirect
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_protect
-import json
-from .models import PageView, CustomUser
-from django.contrib.auth import login, authenticate, logout
-from .forms import CustomUserCreationForm
+from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
+from django.views.decorators.csrf import csrf_exempt
+from django.urls import reverse
+from django.conf import settings
+from .forms import CustomUserCreationForm
+from .models import Hobby, CustomUser
+import json
+from django.core.paginator import Paginator
+from datetime import datetime, timedelta
+from django.contrib.auth.decorators import login_required
+from django.http import HttpRequest, HttpResponse
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
 
-def main_spa(request: HttpRequest) -> JsonResponse:
-    return render(request, 'api/spa/index.html', {})
 
 
-# Test view to display PageView count
-def page_view_count(request):
-    page_view, _ = PageView.objects.get_or_create(id=1)
-    page_view.count += 1
-    page_view.save()
-    return JsonResponse({"Page View Count": page_view.count})
+def main_spa(request):
+    if not request.user.is_authenticated:
+        return redirect('api:login')  # Redirect to login if user is not authenticated
+    return render(request, 'api/spa/index.html')
 
-# View to display user list (for testing purposes)
-def user_list(request):
-    users = CustomUser.objects.values("username", "date_of_birth", "hobbies")
-    return JsonResponse({"users": list(users)})
-
-# SignUp View
-def signup(request):
-    if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)  
-            return redirect('home')  
-    else:
-        form = CustomUserCreationForm()
-    return render(request, 'api/spa/signup.html', {'form': form})
-
-# Login View
 def login_view(request):
-    if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
+    if request.method == "POST":
+        form = AuthenticationForm(data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            return JsonResponse({
-                'id': user.id,
-                'username': user.username,
-                'name': user.name,
-                'email': user.email,
-                'hobbies': user.hobbies,
-            })
+            return redirect('api:main-spa')  # Redirect to main SPA
     else:
         form = AuthenticationForm()
-    return render(request, 'api/spa/login.html', {'form': form})
+    return render(request, 'api/login.html', {'form': form})
 
-# Logout View
 def logout_view(request):
     logout(request)
-    return JsonResponse({'message': 'Logged out successfully'})
+    return redirect(reverse('api:login'))  # Redirect to login after logout
 
-def login_user(request):
-    username = request.POST.get('username')
-    password = request.POST.get('password')
-    
-    user = authenticate(request, username=username, password=password)
-    if user is not None:
-        login(request, user)  
-        return JsonResponse({'message': 'Login successful'})
-    return JsonResponse({'error': 'Invalid credentials'}, status=400)
 
-# Home page for authenticated users
-def home(request):
-    return render(request, 'api/spa/home.html')
+@login_required
+def hobbies_api(request: HttpRequest) -> JsonResponse:
+    """
+    API endpoint to retrieve all hobbies.
+    """
+    if request.method == "GET":
+        hobbies = Hobby.objects.all().values("id", "name")
+        return JsonResponse({"hobbies": list(hobbies)}, safe=False)
+    return JsonResponse({"error": "Invalid request method"}, status=405)
 
-# user_data view to send authenticated user data
-def user_data(request):
-    if request.user.is_authenticated:
-        user = request.user
-        return JsonResponse({
-            'id': user.id,
-            'name': user.name,
-            'email': user.email,
-            'date_of_birth': user.date_of_birth,
-            'hobbies': user.hobbies
-        })
-    return JsonResponse({'error': 'User not authenticated'}, status=401)
-def register_user(request):
+
+def get_user_data(request: HttpRequest) -> JsonResponse:
+    """
+    API endpoint to retrieve authenticated user data.
+    """
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "Unauthorized"}, status=401)
+    user = request.user
+    return JsonResponse({
+        "name": user.name,
+        "email": user.email,
+        "date_of_birth": user.date_of_birth,
+        "hobbies": list(user.user_hobbies.values("id", "name")),  # Fixed hobbies to reflect ManyToMany relation
+    })
+
+
+def signup_view(request: HttpRequest) -> HttpResponse:
+    """
+    Handles user signup and registration.
+    """
     if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            user = CustomUser.objects.create_user(
-                username=data["username"],
-                name=data["name"],
-                email=data["email"],
-                date_of_birth=data["date_of_birth"],
-                password=data["password"],
-            )
-            user.set_hobbies_from_list(data.get("hobbies", []))
-            user.save()
-            return JsonResponse({"message": "User registered successfully."}, status=201)
-        except KeyError as e:
-            return JsonResponse({"error": f"Missing field: {e.args[0]}"}, status=400)
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
-    return JsonResponse({"error": "Invalid request method."}, status=405)
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()  # Save the new user but do NOT log them in
+            return redirect(reverse('api:login'))  # Redirect to login
+    else:
+        form = CustomUserCreationForm()
+    return render(request, 'api/signup.html', {'form': form})
 
-def edit_profile(request):
-    if request.method == "PUT":
+
+
+@login_required
+def profile_view(request: HttpRequest) -> JsonResponse:
+    """
+    Handles GET and POST requests for user profile data.
+    """
+    if request.method == "POST":
         try:
             data = json.loads(request.body)
             user = request.user
             user.name = data.get("name", user.name)
             user.email = data.get("email", user.email)
             user.date_of_birth = data.get("date_of_birth", user.date_of_birth)
-            user.set_hobbies_from_list(data.get("hobbies", user.get_hobbies_list()))
-            user.save()
-            return JsonResponse({"message": "Profile updated successfully."})
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
-    return JsonResponse({"error": "Invalid request method."}, status=405)
 
-def user_profile(request):
-    user = request.user
+            # Update ManyToMany relationship for hobbies
+            hobbies = data.get("hobbies", [])
+            user.user_hobbies.set(Hobby.objects.filter(id__in=hobbies))
+
+            user.save()
+            return JsonResponse({"message": "Profile updated successfully"})
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    elif request.method == "GET":
+        user = request.user
+        return JsonResponse({
+            "name": user.name,
+            "email": user.email,
+            "date_of_birth": user.date_of_birth,
+            "hobbies": list(user.user_hobbies.values("id", "name")),  # Send hobbies as a list
+        })
+    return JsonResponse({"error": "Invalid request method"}, status=405)
+
+def user_list(request):
+    min_age = request.GET.get('min_age')
+    max_age = request.GET.get('max_age')
+
+    users = CustomUser.objects.all()
+
+    if min_age:
+        users = users.filter(date_of_birth__lte=datetime.now() - timedelta(days=int(min_age) * 365))
+    if max_age:
+        users = users.filter(date_of_birth__gte=datetime.now() - timedelta(days=int(max_age) * 365))
+
+    users_with_similarity = []
+
+    for user in users:
+        similarity_list = []
+
+        for other_user in users:
+            if user != other_user:
+                common_hobbies_count = user.common_hobbies(other_user)
+                similarity_list.append({
+                    'user': other_user.as_dict(),
+                    'common_hobbies': common_hobbies_count,
+                })
+
+        sorted_similarity = sorted(similarity_list, key=lambda x: x['common_hobbies'], reverse=True)
+
+        users_with_similarity.append({
+            'user': user.as_dict(),
+            'similar_users': sorted_similarity[:10],
+        })
+
+    page_number = request.GET.get('page', 1)
+    per_page = int(request.GET.get('per_page', 10))
+    paginator = Paginator(users_with_similarity, per_page)
+    page = paginator.get_page(page_number)
+
     return JsonResponse({
-        "username": user.username,
-        "name": user.name,
-        "email": user.email,
-        "date_of_birth": user.date_of_birth,
-        "hobbies": user.get_hobbies_list(),
+        'users': page.object_list,
+        'total_pages': paginator.num_pages,
+        'current_page': page.number,
     })
+

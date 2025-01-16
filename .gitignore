@@ -25,6 +25,10 @@ staticfiles
 *.so
 
 # Distribution / packaging
+node_modules/
+dist/
+static/api/spa/
+.env
 .Python
 build/
 develop-eggs/

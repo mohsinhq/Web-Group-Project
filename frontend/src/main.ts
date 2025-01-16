@@ -1,32 +1,33 @@
-import '../../api/axios-config'
-import { getCSRFToken } from '../../api/axios-config'
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
-import axios from 'axios'
-import App from './App.vue'
-import router from './router'
-
+import { createApp } from 'vue';
+import App from './App.vue';
+import router from './router';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap';
 
-const csrfToken = getCSRFToken();
-if (csrfToken) {
-  axios.defaults.headers.common['X-CSRFToken'] = csrfToken;
-  axios.defaults.withCredentials = true;  
-  console.log('CSRF Token:', csrfToken);
-} else {
-  console.error('CSRF token not found!');
+// Helper to get CSRF token from cookies
+function getCSRFToken(): string | null {
+  const cookies = document.cookie.split(';');
+  for (const cookie of cookies) {
+    const [name, value] = cookie.trim().split('=');
+    if (name === 'csrftoken') return value;
+  }
+  return null;
 }
 
-axios.defaults.withCredentials = true;
+const app = createApp(App);
 
-axios.defaults.baseURL = 'http://localhost:8000'
+app.config.globalProperties.$fetch = (url: string, options: RequestInit = {}) => {
+  const csrfToken = getCSRFToken();
+  return fetch(url, {
+    ...options,
+    credentials: 'include', // Ensures cookies are sent
+    headers: {
+      ...options.headers,
+      'X-CSRFToken': csrfToken || '', // Add CSRF token
+    },
+  });
+};
 
-const app = createApp(App)
-
-app.use(createPinia())
-
-app.use(router)
-
-app.mount('#app')
+app.use(router);
+app.mount('#app');

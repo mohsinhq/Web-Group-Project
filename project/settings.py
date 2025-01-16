@@ -12,32 +12,24 @@ https://docs.djangoproject.com/en/stable/ref/settings/
 
 from . import database
 import os
-
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/stable/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
+# Secret Key
 SECRET_KEY = os.getenv(
     'DJANGO_SECRET_KEY',
-    # safe value used for development when DJANGO_SECRET_KEY might not be set
     'django-insecure-8^fq+a!kh-4pm8#y(urc^&zum$01nvb69$s=vnif(#gn6o7)_!'
 )
 
+# Debug Mode
+DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Allowed Hosts
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 
-ALLOWED_HOSTS = ['*']
-
-
-# Application definition
-
+# Installed Apps
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -49,24 +41,27 @@ INSTALLED_APPS = [
     'corsheaders',
 ]
 
+# Middleware
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Place above CommonMiddleware for CORS
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
 
+# URL Configuration
 ROOT_URLCONF = 'project.urls'
 
+# Templates
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # Custom templates directory
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -79,79 +74,55 @@ TEMPLATES = [
     },
 ]
 
+# WSGI Application
 WSGI_APPLICATION = 'project.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/stable/ref/settings/#databases
-
-
+# Database Configuration
 DATABASES = {
     'default': database.config()
 }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/stable/ref/settings/#auth-password-validators
-
+# Authentication Password Validators
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-
 # Internationalization
-# https://docs.djangoproject.com/en/stable/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/stable/howto/static-files/
-
+# Static Files
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/stable/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'api', 'static'),  # Directory for Vue build files
+]
+
+# Media Files (Optional)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Login and Authentication
+LOGIN_URL = '/login/'
+AUTH_USER_MODEL = 'api.CustomUser'
+
+# CORS Configuration
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # Allow frontend origin in development
+    "http://127.0.0.1:8000",  # Add backend origin if frontend and backend are served together
+]
+
+# Internal IPs for Debug Toolbar (Optional)
 INTERNAL_IPS = ['127.0.0.1']
 
-AUTH_USER_MODEL = "api.CustomUser"
-
-CORS_ALLOW_CREDENTIALS = True
-CORS_ORIGIN_WHITELIST = [
-    'http://localhost:5173',  
-]
-
-CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:5173',  
-]
-
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'  
-CSRF_COOKIE_NAME = 'csrftoken'
-SESSION_COOKIE_AGE = 60 * 60 * 24 
-CSRF_COOKIE_SECURE = False
-CSRF_COOKIE_HTTPONLY = False
-
-SESSION_COOKIE_HTTPONLY = False
+# Frontend URL (Redirect for Login)
+FRONTEND_URL = os.getenv('FRONTEND_URL', "http://127.0.0.1:8000/")

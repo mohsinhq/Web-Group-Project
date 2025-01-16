@@ -1,27 +1,39 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { useUserStore } from '../stores/userStore';
-import Home from '../views/Home.vue';
-import Login from '../views/Login.vue';
-import Signup from '../views/Signup.vue'
+import MainPage from '../pages/MainPage.vue';
+import OtherPage from '../pages/OtherPage.vue';
+import HobbiesPage from '../pages/HobbiesPage.vue';
+import ProfilePage from '../pages/ProfilePage.vue';
 
 const routes = [
-  { path: '/', component: Home, name: 'Home', meta: { requiresAuth: true } },  
-  { path: '/login', component: Login, name: 'Login' },  
-  { path: '/signup', component: Signup, name: 'Signup' },
+  {
+    path: '/',
+    name: 'MainPage',
+    component: MainPage,
+  },
+  {
+    path: '/other',
+    name: 'OtherPage',
+    component: OtherPage,
+  },
+  {
+    path: '/hobbies',
+    name: 'HobbiesPage',
+    component: HobbiesPage,
+  },
+  {
+    path: '/profile',
+    name: 'ProfilePage',
+    component: ProfilePage,
+  },
+  {
+    path: '/:pathMatch(.*)*', // Fallback route for unmatched paths
+    redirect: '/',
+  },
 ];
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
-});
-
-router.beforeEach((to, from, next) => {
-  const userStore = useUserStore();
-  if (to.meta.requiresAuth && !userStore.isAuthenticated) {
-    next({ name: 'Login' });
-  } else {
-    next();
-  }
 });
 
 export default router;
