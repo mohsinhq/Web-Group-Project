@@ -1,5 +1,30 @@
 /// <reference types="../node_modules/.vue-global-types/vue_3.5_false.d.ts" />
-export default (await import('vue')).defineComponent({});
+import { defineComponent } from "vue";
+import { useToast } from "vue-toastification";
+export default defineComponent({
+    setup() {
+        const toast = useToast();
+        const handleLogout = async () => {
+            try {
+                const response = await fetch("api/logout", { credentials: "include" });
+                if (response.ok) {
+                    toast.success("Successfully logged out!");
+                    window.location.href = "/"; // Redirect to the main page or login page
+                }
+                else {
+                    toast.error("Failed to log out. Please try again.");
+                }
+            }
+            catch (error) {
+                toast.error("An error occurred during logout.");
+                console.error("Logout Error:", error);
+            }
+        };
+        return {
+            handleLogout,
+        };
+    },
+});
 ; /* PartiallyEnd: #3632/script.vue */
 function __VLS_template() {
     const __VLS_ctx = {};
@@ -78,7 +103,8 @@ function __VLS_template() {
     __VLS_29.slots.default;
     var __VLS_29;
     __VLS_elementAsFunction(__VLS_intrinsicElements.a, __VLS_intrinsicElements.a)({
-        href: ("api/logout"),
+        ...{ onClick: (__VLS_ctx.handleLogout) },
+        href: ("#"),
         ...{ class: ("nav-link") },
     });
     const __VLS_30 = {}.RouterView;

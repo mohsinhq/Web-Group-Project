@@ -1,6 +1,7 @@
 /// <reference types="../../node_modules/.vue-global-types/vue_3.5_false.d.ts" />
 import { defineComponent, ref, onMounted } from "vue";
 export default defineComponent({
+    name: "ProfilePage",
     setup() {
         const profileData = ref({
             name: "",
@@ -18,9 +19,8 @@ export default defineComponent({
         });
         const passwordMessage = ref("");
         const passwordLoading = ref(false);
-        onMounted(async () => {
+        const fetchUserData = async () => {
             try {
-                // Fetch user profile data
                 const userResponse = await fetch("/api/user-data/", {
                     credentials: "include",
                 });
@@ -35,7 +35,9 @@ export default defineComponent({
                             : [],
                     };
                 }
-                // Fetch available hobbies
+                else {
+                    message.value = `Failed to fetch user data: ${userResponse.statusText}`;
+                }
                 const hobbiesResponse = await fetch("/api/hobbies/", {
                     credentials: "include",
                 });
@@ -43,16 +45,21 @@ export default defineComponent({
                     const data = await hobbiesResponse.json();
                     availableHobbies.value = data.hobbies || [];
                 }
+                else {
+                    message.value = `Failed to fetch hobbies: ${hobbiesResponse.statusText}`;
+                }
             }
             catch (error) {
-                console.error("Error fetching data:", error);
-                message.value = "Failed to fetch data.";
+                message.value = "Error fetching data. Please try again later.";
+                console.error("Fetch error:", error);
             }
-        });
+        };
         const saveProfile = async () => {
             try {
                 loading.value = true;
-                const csrfToken = getCookie("csrftoken") || "";
+                const csrfToken = getCookie("csrftoken");
+                if (!csrfToken)
+                    throw new Error("CSRF token not found.");
                 const response = await fetch("/api/profile/", {
                     method: "POST",
                     headers: {
@@ -70,8 +77,8 @@ export default defineComponent({
                 }
             }
             catch (error) {
-                console.error("Error saving profile:", error);
-                message.value = "An error occurred.";
+                message.value = "Error saving profile.";
+                console.error("Save error:", error);
             }
             finally {
                 loading.value = false;
@@ -80,7 +87,9 @@ export default defineComponent({
         const changePassword = async () => {
             try {
                 passwordLoading.value = true;
-                const csrfToken = getCookie("csrftoken") || "";
+                const csrfToken = getCookie("csrftoken");
+                if (!csrfToken)
+                    throw new Error("CSRF token not found.");
                 const response = await fetch("/api/change-password/", {
                     method: "POST",
                     headers: {
@@ -91,12 +100,7 @@ export default defineComponent({
                 });
                 if (response.ok) {
                     passwordMessage.value = "Password updated successfully!";
-                    // Clear the password fields after success
-                    passwordData.value = {
-                        old_password: "",
-                        new_password: "",
-                        confirm_password: "",
-                    };
+                    passwordData.value = { old_password: "", new_password: "", confirm_password: "" };
                 }
                 else {
                     const errorData = await response.json();
@@ -104,20 +108,21 @@ export default defineComponent({
                 }
             }
             catch (error) {
-                console.error("Error changing password:", error);
-                passwordMessage.value = "An error occurred.";
+                passwordMessage.value = "Error changing password.";
+                console.error("Password error:", error);
             }
             finally {
                 passwordLoading.value = false;
             }
         };
-        // Helper function to get CSRF token
         const getCookie = (name) => {
             const value = `; ${document.cookie}`;
             const parts = value.split(`; ${name}=`);
             if (parts.length === 2)
-                return parts.pop()?.split(";").shift();
+                return parts.pop()?.split(";").shift() || null;
+            return null;
         };
+        onMounted(fetchUserData);
         return {
             profileData,
             availableHobbies,
@@ -178,9 +183,11 @@ function __VLS_template() {
         __VLS_elementAsFunction(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({
             key: ((hobby.id)),
             ...{ class: ("hobby-checkbox") },
+            for: ((`hobby-${hobby.id}`)),
         });
         __VLS_elementAsFunction(__VLS_intrinsicElements.input)({
             type: ("checkbox"),
+            id: ((`hobby-${hobby.id}`)),
             value: ((hobby.id)),
         });
         (__VLS_ctx.profileData.hobbies);
@@ -229,14 +236,18 @@ function __VLS_template() {
         __VLS_elementAsFunction(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({});
     }
     if (__VLS_ctx.message) {
-        __VLS_elementAsFunction(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({});
+        __VLS_elementAsFunction(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({
+            ...{ class: ("success-message") },
+        });
         (__VLS_ctx.message);
     }
     if (__VLS_ctx.passwordMessage) {
-        __VLS_elementAsFunction(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({});
+        __VLS_elementAsFunction(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({
+            ...{ class: ("error-message") },
+        });
         (__VLS_ctx.passwordMessage);
     }
-    ['hobby-checkbox',];
+    ['hobby-checkbox', 'success-message', 'error-message',];
     var __VLS_slots;
     var $slots;
     let __VLS_inheritedAttrs;

@@ -17,9 +17,11 @@
           v-for="hobby in availableHobbies"
           :key="hobby.id"
           class="hobby-checkbox"
+          :for="`hobby-${hobby.id}`"
         >
           <input
             type="checkbox"
+            :id="`hobby-${hobby.id}`"
             :value="hobby.id"
             v-model="profileData.hobbies"
           />
@@ -58,9 +60,10 @@
 
       <button type="submit" :disabled="passwordLoading">Change Password</button>
     </form>
+
     <p v-if="loading">Saving...</p>
-    <p v-if="message">{{ message }}</p>
-    <p v-if="passwordMessage">{{ passwordMessage }}</p>
+    <p v-if="message" class="success-message">{{ message }}</p>
+    <p v-if="passwordMessage" class="error-message">{{ passwordMessage }}</p>
   </div>
 </template>
 
@@ -86,6 +89,7 @@ interface PasswordData {
 }
 
 export default defineComponent({
+  name: "ProfilePage",
   setup() {
     const profileData = ref<ProfileData>({
       name: "",
@@ -105,9 +109,8 @@ export default defineComponent({
     const passwordMessage = ref<string>("");
     const passwordLoading = ref<boolean>(false);
 
-    onMounted(async () => {
+    const fetchUserData = async () => {
       try {
-        // Fetch user profile data
         const userResponse = await fetch("/api/user-data/", {
           credentials: "include",
         });
@@ -121,26 +124,31 @@ export default defineComponent({
               ? userData.hobbies.map((hobby: Hobby) => hobby.id)
               : [],
           };
+        } else {
+          message.value = `Failed to fetch user data: ${userResponse.statusText}`;
         }
 
-        // Fetch available hobbies
         const hobbiesResponse = await fetch("/api/hobbies/", {
           credentials: "include",
         });
         if (hobbiesResponse.ok) {
           const data = await hobbiesResponse.json();
           availableHobbies.value = data.hobbies || [];
+        } else {
+          message.value = `Failed to fetch hobbies: ${hobbiesResponse.statusText}`;
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
-        message.value = "Failed to fetch data.";
+        message.value = "Error fetching data. Please try again later.";
+        console.error("Fetch error:", error);
       }
-    });
+    };
 
     const saveProfile = async () => {
       try {
         loading.value = true;
-        const csrfToken = getCookie("csrftoken") || "";
+        const csrfToken = getCookie("csrftoken");
+        if (!csrfToken) throw new Error("CSRF token not found.");
+
         const response = await fetch("/api/profile/", {
           method: "POST",
           headers: {
@@ -149,6 +157,7 @@ export default defineComponent({
           },
           body: JSON.stringify(profileData.value),
         });
+
         if (response.ok) {
           message.value = "Profile updated successfully!";
         } else {
@@ -156,8 +165,8 @@ export default defineComponent({
           message.value = errorData.error || "Failed to update profile.";
         }
       } catch (error) {
-        console.error("Error saving profile:", error);
-        message.value = "An error occurred.";
+        message.value = "Error saving profile.";
+        console.error("Save error:", error);
       } finally {
         loading.value = false;
       }
@@ -166,7 +175,9 @@ export default defineComponent({
     const changePassword = async () => {
       try {
         passwordLoading.value = true;
-        const csrfToken = getCookie("csrftoken") || "";
+        const csrfToken = getCookie("csrftoken");
+        if (!csrfToken) throw new Error("CSRF token not found.");
+
         const response = await fetch("/api/change-password/", {
           method: "POST",
           headers: {
@@ -175,32 +186,30 @@ export default defineComponent({
           },
           body: JSON.stringify(passwordData.value),
         });
+
         if (response.ok) {
           passwordMessage.value = "Password updated successfully!";
-          // Clear the password fields after success
-          passwordData.value = {
-            old_password: "",
-            new_password: "",
-            confirm_password: "",
-          };
+          passwordData.value = { old_password: "", new_password: "", confirm_password: "" };
         } else {
           const errorData = await response.json();
           passwordMessage.value = errorData.error || "Failed to change password.";
         }
       } catch (error) {
-        console.error("Error changing password:", error);
-        passwordMessage.value = "An error occurred.";
+        passwordMessage.value = "Error changing password.";
+        console.error("Password error:", error);
       } finally {
         passwordLoading.value = false;
       }
     };
 
-    // Helper function to get CSRF token
-    const getCookie = (name: string): string | undefined => {
+    const getCookie = (name: string): string | null => {
       const value = `; ${document.cookie}`;
       const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop()?.split(";").shift();
+      if (parts.length === 2) return parts.pop()?.split(";").shift() || null;
+      return null;
     };
+
+    onMounted(fetchUserData);
 
     return {
       profileData,
@@ -231,5 +240,13 @@ form {
 button:disabled {
   background-color: #ccc;
   cursor: not-allowed;
+}
+
+.success-message {
+  color: green;
+}
+
+.error-message {
+  color: red;
 }
 </style>

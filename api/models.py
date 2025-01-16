@@ -59,6 +59,9 @@ class PageView(models.Model):
 
 
 class FriendRequest(models.Model):
+    """
+    Model to represent friend requests between users.
+    """
     from_user = models.ForeignKey(
         CustomUser, related_name="sent_requests", on_delete=models.CASCADE
     )
@@ -73,20 +76,38 @@ class FriendRequest(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("from_user", "to_user")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["from_user", "to_user"], name="unique_friend_request"
+            ),
+            models.UniqueConstraint(
+                fields=["to_user", "from_user"], name="unique_reverse_friend_request"
+            ),
+        ]
+        verbose_name_plural = "Friend Requests"
 
     def __str__(self):
         return f"{self.from_user} -> {self.to_user} ({self.status})"
 
 
-
 class Friendship(models.Model):
+    """
+    Model to represent friendships between users.
+    """
     user1 = models.ForeignKey(CustomUser, related_name="friends1", on_delete=models.CASCADE)
     user2 = models.ForeignKey(CustomUser, related_name="friends2", on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("user1", "user2")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user1", "user2"], name="unique_friendship"
+            ),
+            models.UniqueConstraint(
+                fields=["user2", "user1"], name="unique_reverse_friendship"
+            ),
+        ]
+        verbose_name_plural = "Friendships"
 
     def __str__(self):
         return f"{self.user1.username} - {self.user2.username}"

@@ -6,15 +6,41 @@
       <router-link to="/profile" class="nav-link">Profile Page</router-link> |
       <router-link to="/friend-requests" class="nav-link">Friend Requests</router-link> |
       <router-link to="/friends" class="nav-link">Friends List</router-link> |
-      <a href="api/logout" class="nav-link">Logout</a>
+      <a @click.prevent="handleLogout" href="#" class="nav-link">Logout</a>
     </nav>
     <router-view />
   </div>
 </template>
 
 <script lang="ts">
-export default {};
-</script>    
+import { defineComponent } from "vue";
+import { useToast } from "vue-toastification";
+
+export default defineComponent({
+  setup() {
+    const toast = useToast();
+
+    const handleLogout = async () => {
+      try {
+        const response = await fetch("api/logout", { credentials: "include" });
+        if (response.ok) {
+          toast.success("Successfully logged out!");
+          window.location.href = "/"; // Redirect to the main page or login page
+        } else {
+          toast.error("Failed to log out. Please try again.");
+        }
+      } catch (error) {
+        toast.error("An error occurred during logout.");
+        console.error("Logout Error:", error);
+      }
+    };
+
+    return {
+      handleLogout,   
+    };
+  },
+});
+</script>
 
 <style scoped>
 .navbar {

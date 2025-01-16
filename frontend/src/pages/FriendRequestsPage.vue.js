@@ -1,8 +1,11 @@
 /// <reference types="../../node_modules/.vue-global-types/vue_3.5_false.d.ts" />
 import { defineComponent, ref, onMounted } from "vue";
+import { useToast } from "vue-toastification";
 export default defineComponent({
     setup() {
         const requests = ref([]);
+        const loading = ref(false); // Track the loading state for buttons
+        const toast = useToast(); // Initialize toast
         const fetchRequests = async () => {
             try {
                 const response = await fetch("/api/friend-requests/", { credentials: "include" });
@@ -11,15 +14,18 @@ export default defineComponent({
                     requests.value = data.requests;
                 }
                 else {
-                    console.error("Failed to fetch friend requests");
+                    toast.error("Failed to fetch friend requests."); // Show error toast
+                    console.error("Failed to fetch friend requests:", await response.text());
                 }
             }
             catch (error) {
+                toast.error("Error fetching friend requests."); // Show error toast
                 console.error("Error fetching friend requests:", error);
             }
         };
         const respondToRequest = async (requestId, action) => {
             try {
+                loading.value = true; // Set loading state
                 const response = await fetch("/api/respond-friend-request/", {
                     method: "POST",
                     headers: {
@@ -30,15 +36,21 @@ export default defineComponent({
                     body: JSON.stringify({ request_id: requestId, action }),
                 });
                 if (response.ok) {
-                    alert(`Friend request ${action}ed!`);
-                    fetchRequests();
+                    toast.success(`Friend request ${action}ed!`); // Show success toast
+                    await fetchRequests(); // Refresh requests after response
                 }
                 else {
-                    console.error("Error responding to friend request");
+                    const errorData = await response.json();
+                    toast.error(errorData.message || "Error responding to friend request."); // Show error toast
+                    console.error("Error responding to friend request:", errorData);
                 }
             }
             catch (error) {
+                toast.error("Error responding to friend request."); // Show error toast
                 console.error("Error:", error);
+            }
+            finally {
+                loading.value = false; // Reset loading state
             }
         };
         const getCsrfToken = () => {
@@ -50,7 +62,7 @@ export default defineComponent({
             return "";
         };
         onMounted(fetchRequests);
-        return { requests, respondToRequest };
+        return { requests, respondToRequest, loading };
     },
 });
 ; /* PartiallyEnd: #3632/script.vue */
@@ -58,6 +70,8 @@ function __VLS_template() {
     const __VLS_ctx = {};
     let __VLS_components;
     let __VLS_directives;
+    // CSS variable injection 
+    // CSS variable injection end 
     __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({});
     __VLS_elementAsFunction(__VLS_intrinsicElements.h2, __VLS_intrinsicElements.h2)({});
     if (__VLS_ctx.requests.length) {
@@ -75,6 +89,7 @@ function __VLS_template() {
                             return;
                         __VLS_ctx.respondToRequest(request.id, 'accept');
                     } },
+                disabled: ((__VLS_ctx.loading)),
             });
             __VLS_elementAsFunction(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
                 ...{ onClick: (...[$event]) => {
@@ -82,6 +97,7 @@ function __VLS_template() {
                             return;
                         __VLS_ctx.respondToRequest(request.id, 'reject');
                     } },
+                disabled: ((__VLS_ctx.loading)),
             });
         }
     }

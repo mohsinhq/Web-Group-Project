@@ -121,6 +121,12 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",  # Add backend origin if frontend and backend are served together
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:8000",
+]
+
+
 # Internal IPs for Debug Toolbar (Optional)
 INTERNAL_IPS = ['127.0.0.1']
 

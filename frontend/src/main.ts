@@ -1,9 +1,22 @@
 import { createApp } from 'vue';
 import App from './App.vue';
 import router from './router';
-
+import Toast, { PluginOptions, POSITION } from 'vue-toastification';
+import 'vue-toastification/dist/index.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap';
+
+// Toast options
+const toastOptions: PluginOptions = {
+  position: POSITION.TOP_RIGHT, // Use POSITION.TOP_RIGHT instead of a string
+  timeout: 3000,
+  closeOnClick: true,
+  pauseOnHover: true,
+  draggable: true,
+  draggablePercent: 0.6,
+};
+
+const app = createApp(App);
 
 // Helper to get CSRF token from cookies
 function getCSRFToken(): string | null {
@@ -14,8 +27,6 @@ function getCSRFToken(): string | null {
   }
   return null;
 }
-
-const app = createApp(App);
 
 app.config.globalProperties.$fetch = (url: string, options: RequestInit = {}) => {
   const csrfToken = getCSRFToken();
@@ -30,4 +41,5 @@ app.config.globalProperties.$fetch = (url: string, options: RequestInit = {}) =>
 };
 
 app.use(router);
+app.use(Toast, toastOptions); // Use toast plugin
 app.mount('#app');

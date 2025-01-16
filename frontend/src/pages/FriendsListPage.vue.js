@@ -1,25 +1,31 @@
 /// <reference types="../../node_modules/.vue-global-types/vue_3.5_false.d.ts" />
 import { defineComponent, ref, onMounted } from "vue";
+import { useToast } from "vue-toastification";
 export default defineComponent({
     setup() {
         const friends = ref([]);
+        const loading = ref(false); // Track loading state for the remove button
+        const toast = useToast(); // Initialize toast notifications
         const fetchFriends = async () => {
             try {
-                const response = await fetch("/api/friends-list/", { credentials: "include" }); // Update endpoint if needed
+                const response = await fetch("/api/friends-list/", { credentials: "include" });
                 if (response.ok) {
                     const data = await response.json();
                     friends.value = data.friends;
                 }
                 else {
-                    console.error("Failed to fetch friends", await response.text());
+                    toast.error("Failed to fetch friends."); // Show error toast
+                    console.error("Failed to fetch friends:", await response.text());
                 }
             }
             catch (error) {
+                toast.error("Error fetching friends."); // Show error toast
                 console.error("Error fetching friends:", error);
             }
         };
         const removeFriend = async (friendId) => {
             try {
+                loading.value = true; // Set loading state
                 const response = await fetch("/api/remove-friend/", {
                     method: "POST",
                     headers: {
@@ -30,16 +36,22 @@ export default defineComponent({
                     body: JSON.stringify({ friend_id: friendId }),
                 });
                 if (response.ok) {
-                    alert("Friend removed!");
+                    toast.success("Friend removed successfully!"); // Show success toast
                     // Update the UI by filtering out the removed friend
-                    friends.value = friends.value.filter(friend => friend.id !== friendId);
+                    friends.value = friends.value.filter((friend) => friend.id !== friendId);
                 }
                 else {
-                    console.error("Failed to remove friend:", await response.text());
+                    const errorData = await response.json();
+                    toast.error(errorData.message || "Failed to remove friend."); // Show error toast
+                    console.error("Failed to remove friend:", errorData);
                 }
             }
             catch (error) {
+                toast.error("Error removing friend."); // Show error toast
                 console.error("Error removing friend:", error);
+            }
+            finally {
+                loading.value = false; // Reset loading state
             }
         };
         const getCsrfToken = () => {
@@ -51,7 +63,7 @@ export default defineComponent({
             return "";
         };
         onMounted(fetchFriends);
-        return { friends, removeFriend };
+        return { friends, removeFriend, loading };
     },
 });
 ; /* PartiallyEnd: #3632/script.vue */
@@ -77,6 +89,7 @@ function __VLS_template() {
                             return;
                         __VLS_ctx.removeFriend(friend.id);
                     } },
+                disabled: ((__VLS_ctx.loading)),
             });
         }
     }

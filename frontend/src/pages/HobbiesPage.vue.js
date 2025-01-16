@@ -1,21 +1,32 @@
 /// <reference types="../../node_modules/.vue-global-types/vue_3.5_false.d.ts" />
 import { defineComponent, ref } from "vue";
+import { useToast } from "vue-toastification";
 export default defineComponent({
     setup() {
         const users = ref([]);
-        const pagination = ref({ currentPage: 1, hasNext: false, hasPrevious: false });
+        const pagination = ref({
+            currentPage: 1,
+            hasNext: false,
+            hasPrevious: false,
+        });
         const filters = ref({
             minAge: null,
             maxAge: null,
         });
+        const toast = useToast(); // Initialize toast notifications
+        const loading = ref(false); // General loading state
+        const loadingUser = ref(null); // Track user-specific loading state
         const fetchUsers = async (page = 1) => {
             try {
+                loading.value = true;
                 const params = new URLSearchParams({
                     page: page.toString(),
                     ...(filters.value.minAge ? { min_age: filters.value.minAge } : {}),
                     ...(filters.value.maxAge ? { max_age: filters.value.maxAge } : {}),
                 });
-                const response = await fetch(`/api/similar-users/?${params.toString()}`, { credentials: "include" });
+                const response = await fetch(`/api/similar-users/?${params.toString()}`, {
+                    credentials: "include",
+                });
                 if (response.ok) {
                     const data = await response.json();
                     users.value = data.users;
@@ -26,38 +37,48 @@ export default defineComponent({
                     };
                 }
                 else {
-                    console.error("Failed to fetch users");
+                    toast.error("Failed to fetch users."); // Show error toast
+                    console.error("Failed to fetch users:", await response.text());
                 }
             }
             catch (error) {
+                toast.error("Error fetching users."); // Show error toast
                 console.error("Error fetching users:", error);
+            }
+            finally {
+                loading.value = false;
             }
         };
         const sendFriendRequest = async (userId) => {
             try {
-                const csrfToken = getCsrfToken(); // Fetch the CSRF token
+                loadingUser.value = userId; // Set user-specific loading state
+                const csrfToken = getCsrfToken();
                 const response = await fetch(`/api/send-friend-request/`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "X-CSRFToken": csrfToken, // Include the CSRF token
+                        "X-CSRFToken": csrfToken,
                     },
                     credentials: "include",
                     body: JSON.stringify({ user_id: userId }),
                 });
                 if (response.ok) {
-                    alert("Friend request sent!");
+                    toast.success("Friend request sent successfully!"); // Show success toast
                 }
                 else {
                     const errorData = await response.json();
+                    toast.error(errorData.message || "Failed to send friend request."); // Show error toast
                     console.error("Error sending friend request:", errorData);
                 }
             }
             catch (error) {
+                toast.error("Error sending friend request."); // Show error toast
                 console.error("Error:", error);
             }
+            finally {
+                loadingUser.value = null; // Reset user-specific loading state
+            }
         };
-        // Helper function to retrieve CSRF token from cookies
         const getCsrfToken = () => {
             const name = "csrftoken";
             const value = `; ${document.cookie}`;
@@ -69,9 +90,12 @@ export default defineComponent({
         const changePage = (newPage) => {
             fetchUsers(newPage);
         };
+        const applyFilters = () => {
+            fetchUsers(1);
+        };
         // Fetch users on page load
         fetchUsers();
-        return { users, filters, fetchUsers, sendFriendRequest, pagination, changePage };
+        return { users, filters, fetchUsers, sendFriendRequest, pagination, changePage, applyFilters, loading, loadingUser };
     },
 });
 ; /* PartiallyEnd: #3632/script.vue */
@@ -103,7 +127,8 @@ function __VLS_template() {
     });
     (__VLS_ctx.filters.maxAge);
     __VLS_elementAsFunction(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
-        ...{ onClick: (() => __VLS_ctx.fetchUsers()) },
+        ...{ onClick: (__VLS_ctx.applyFilters) },
+        disabled: ((__VLS_ctx.loading)),
     });
     if (__VLS_ctx.users.length) {
         __VLS_elementAsFunction(__VLS_intrinsicElements.ul, __VLS_intrinsicElements.ul)({});
@@ -124,7 +149,12 @@ function __VLS_template() {
             __VLS_elementAsFunction(__VLS_intrinsicElements.strong, __VLS_intrinsicElements.strong)({});
             (user.hobbies.map(h => h.name).join(', '));
             __VLS_elementAsFunction(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
-                ...{ onClick: (() => __VLS_ctx.sendFriendRequest(user.id)) },
+                ...{ onClick: (...[$event]) => {
+                        if (!((__VLS_ctx.users.length)))
+                            return;
+                        __VLS_ctx.sendFriendRequest(user.id);
+                    } },
+                disabled: ((__VLS_ctx.loadingUser === user.id)),
             });
         }
     }
@@ -136,12 +166,16 @@ function __VLS_template() {
         ...{ class: ("pagination") },
     });
     __VLS_elementAsFunction(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
-        ...{ onClick: (() => __VLS_ctx.changePage(__VLS_ctx.pagination.currentPage - 1)) },
-        disabled: ((!__VLS_ctx.pagination.hasPrevious)),
+        ...{ onClick: (...[$event]) => {
+                __VLS_ctx.changePage(__VLS_ctx.pagination.currentPage - 1);
+            } },
+        disabled: ((!__VLS_ctx.pagination.hasPrevious || __VLS_ctx.loading)),
     });
     __VLS_elementAsFunction(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
-        ...{ onClick: (() => __VLS_ctx.changePage(__VLS_ctx.pagination.currentPage + 1)) },
-        disabled: ((!__VLS_ctx.pagination.hasNext)),
+        ...{ onClick: (...[$event]) => {
+                __VLS_ctx.changePage(__VLS_ctx.pagination.currentPage + 1);
+            } },
+        disabled: ((!__VLS_ctx.pagination.hasNext || __VLS_ctx.loading)),
     });
     ['pagination',];
     var __VLS_slots;
