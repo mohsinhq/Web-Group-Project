@@ -11,6 +11,13 @@ export default defineComponent({
         const availableHobbies = ref([]);
         const message = ref("");
         const loading = ref(false);
+        const passwordData = ref({
+            old_password: "",
+            new_password: "",
+            confirm_password: "",
+        });
+        const passwordMessage = ref("");
+        const passwordLoading = ref(false);
         onMounted(async () => {
             try {
                 // Fetch user profile data
@@ -70,6 +77,40 @@ export default defineComponent({
                 loading.value = false;
             }
         };
+        const changePassword = async () => {
+            try {
+                passwordLoading.value = true;
+                const csrfToken = getCookie("csrftoken") || "";
+                const response = await fetch("/api/change-password/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
+                    },
+                    body: JSON.stringify(passwordData.value),
+                });
+                if (response.ok) {
+                    passwordMessage.value = "Password updated successfully!";
+                    // Clear the password fields after success
+                    passwordData.value = {
+                        old_password: "",
+                        new_password: "",
+                        confirm_password: "",
+                    };
+                }
+                else {
+                    const errorData = await response.json();
+                    passwordMessage.value = errorData.error || "Failed to change password.";
+                }
+            }
+            catch (error) {
+                console.error("Error changing password:", error);
+                passwordMessage.value = "An error occurred.";
+            }
+            finally {
+                passwordLoading.value = false;
+            }
+        };
         // Helper function to get CSRF token
         const getCookie = (name) => {
             const value = `; ${document.cookie}`;
@@ -77,7 +118,17 @@ export default defineComponent({
             if (parts.length === 2)
                 return parts.pop()?.split(";").shift();
         };
-        return { profileData, availableHobbies, saveProfile, message, loading };
+        return {
+            profileData,
+            availableHobbies,
+            saveProfile,
+            message,
+            loading,
+            passwordData,
+            changePassword,
+            passwordMessage,
+            passwordLoading,
+        };
     },
 });
 ; /* PartiallyEnd: #3632/script.vue */
@@ -139,12 +190,51 @@ function __VLS_template() {
         type: ("submit"),
         disabled: ((__VLS_ctx.loading)),
     });
+    __VLS_elementAsFunction(__VLS_intrinsicElements.h2, __VLS_intrinsicElements.h2)({});
+    __VLS_elementAsFunction(__VLS_intrinsicElements.form, __VLS_intrinsicElements.form)({
+        ...{ onSubmit: (__VLS_ctx.changePassword) },
+    });
+    __VLS_elementAsFunction(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({
+        for: ("old_password"),
+    });
+    __VLS_elementAsFunction(__VLS_intrinsicElements.input)({
+        id: ("old_password"),
+        type: ("password"),
+        required: (true),
+    });
+    (__VLS_ctx.passwordData.old_password);
+    __VLS_elementAsFunction(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({
+        for: ("new_password"),
+    });
+    __VLS_elementAsFunction(__VLS_intrinsicElements.input)({
+        id: ("new_password"),
+        type: ("password"),
+        required: (true),
+    });
+    (__VLS_ctx.passwordData.new_password);
+    __VLS_elementAsFunction(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({
+        for: ("confirm_password"),
+    });
+    __VLS_elementAsFunction(__VLS_intrinsicElements.input)({
+        id: ("confirm_password"),
+        type: ("password"),
+        required: (true),
+    });
+    (__VLS_ctx.passwordData.confirm_password);
+    __VLS_elementAsFunction(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
+        type: ("submit"),
+        disabled: ((__VLS_ctx.passwordLoading)),
+    });
     if (__VLS_ctx.loading) {
         __VLS_elementAsFunction(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({});
     }
     if (__VLS_ctx.message) {
         __VLS_elementAsFunction(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({});
         (__VLS_ctx.message);
+    }
+    if (__VLS_ctx.passwordMessage) {
+        __VLS_elementAsFunction(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({});
+        (__VLS_ctx.passwordMessage);
     }
     ['hobby-checkbox',];
     var __VLS_slots;

@@ -29,11 +29,11 @@ function __VLS_template() {
     /** @type { [typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, ] } */ ;
     // @ts-ignore
     const __VLS_7 = __VLS_asFunctionalComponent(__VLS_6, new __VLS_6({
-        to: ("/other"),
+        to: ("/hobbies"),
         ...{ class: ("nav-link") },
     }));
     const __VLS_8 = __VLS_7({
-        to: ("/other"),
+        to: ("/hobbies"),
         ...{ class: ("nav-link") },
     }, ...__VLS_functionalComponentArgsRest(__VLS_7));
     __VLS_11.slots.default;
@@ -42,11 +42,11 @@ function __VLS_template() {
     /** @type { [typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, ] } */ ;
     // @ts-ignore
     const __VLS_13 = __VLS_asFunctionalComponent(__VLS_12, new __VLS_12({
-        to: ("/hobbies"),
+        to: ("/profile"),
         ...{ class: ("nav-link") },
     }));
     const __VLS_14 = __VLS_13({
-        to: ("/hobbies"),
+        to: ("/profile"),
         ...{ class: ("nav-link") },
     }, ...__VLS_functionalComponentArgsRest(__VLS_13));
     __VLS_17.slots.default;
@@ -55,25 +55,38 @@ function __VLS_template() {
     /** @type { [typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, ] } */ ;
     // @ts-ignore
     const __VLS_19 = __VLS_asFunctionalComponent(__VLS_18, new __VLS_18({
-        to: ("/profile"),
+        to: ("/friend-requests"),
         ...{ class: ("nav-link") },
     }));
     const __VLS_20 = __VLS_19({
-        to: ("/profile"),
+        to: ("/friend-requests"),
         ...{ class: ("nav-link") },
     }, ...__VLS_functionalComponentArgsRest(__VLS_19));
     __VLS_23.slots.default;
     var __VLS_23;
+    const __VLS_24 = {}.RouterLink;
+    /** @type { [typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, typeof __VLS_components.RouterLink, typeof __VLS_components.routerLink, ] } */ ;
+    // @ts-ignore
+    const __VLS_25 = __VLS_asFunctionalComponent(__VLS_24, new __VLS_24({
+        to: ("/friends"),
+        ...{ class: ("nav-link") },
+    }));
+    const __VLS_26 = __VLS_25({
+        to: ("/friends"),
+        ...{ class: ("nav-link") },
+    }, ...__VLS_functionalComponentArgsRest(__VLS_25));
+    __VLS_29.slots.default;
+    var __VLS_29;
     __VLS_elementAsFunction(__VLS_intrinsicElements.a, __VLS_intrinsicElements.a)({
         href: ("api/logout"),
         ...{ class: ("nav-link") },
     });
-    const __VLS_24 = {}.RouterView;
+    const __VLS_30 = {}.RouterView;
     /** @type { [typeof __VLS_components.RouterView, typeof __VLS_components.routerView, ] } */ ;
     // @ts-ignore
-    const __VLS_25 = __VLS_asFunctionalComponent(__VLS_24, new __VLS_24({}));
-    const __VLS_26 = __VLS_25({}, ...__VLS_functionalComponentArgsRest(__VLS_25));
-    ['navbar', 'nav-link', 'nav-link', 'nav-link', 'nav-link', 'nav-link',];
+    const __VLS_31 = __VLS_asFunctionalComponent(__VLS_30, new __VLS_30({}));
+    const __VLS_32 = __VLS_31({}, ...__VLS_functionalComponentArgsRest(__VLS_31));
+    ['navbar', 'nav-link', 'nav-link', 'nav-link', 'nav-link', 'nav-link', 'nav-link',];
     var __VLS_slots;
     var $slots;
     let __VLS_inheritedAttrs;

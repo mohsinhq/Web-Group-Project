@@ -2,9 +2,10 @@
   <div>
     <nav class="navbar">
       <router-link to="/" class="nav-link">Main Page</router-link> |
-      <router-link to="/other" class="nav-link">Other Page</router-link> |
       <router-link to="/hobbies" class="nav-link">Hobbies Page</router-link> |
       <router-link to="/profile" class="nav-link">Profile Page</router-link> |
+      <router-link to="/friend-requests" class="nav-link">Friend Requests</router-link> |
+      <router-link to="/friends" class="nav-link">Friends List</router-link> |
       <a href="api/logout" class="nav-link">Logout</a>
     </nav>
     <router-view />
@@ -13,7 +14,7 @@
 
 <script lang="ts">
 export default {};
-</script>
+</script>    
 
 <style scoped>
 .navbar {

@@ -15,16 +15,18 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.http import JsonResponse, HttpResponseRedirect
-from django.urls import include, path
-
+from django.http import JsonResponse
+from django.urls import include, path, re_path
 from django.shortcuts import redirect
+from django.views.generic import TemplateView
 
 urlpatterns = [
     path('', lambda request: redirect('/api/login/') if not request.user.is_authenticated else redirect('/api/'), name='root-redirect'),
     path('api/', include('api.urls')),
     path('health', lambda request: JsonResponse({"status": "OK", "message": "Service is running"})),
     path('admin/', admin.site.urls),
+    # Catch-all route for the Vue SPA
+    re_path(r'^.*$', TemplateView.as_view(template_name="api/spa/index.html")),
 ]
 
 

@@ -29,8 +29,38 @@
 
       <button type="submit" :disabled="loading">Save Changes</button>
     </form>
+
+    <h2>Change Password</h2>
+    <form @submit.prevent="changePassword">
+      <label for="old_password">Old Password:</label>
+      <input
+        v-model="passwordData.old_password"
+        id="old_password"
+        type="password"
+        required
+      />
+
+      <label for="new_password">New Password:</label>
+      <input
+        v-model="passwordData.new_password"
+        id="new_password"
+        type="password"
+        required
+      />
+
+      <label for="confirm_password">Confirm Password:</label>
+      <input
+        v-model="passwordData.confirm_password"
+        id="confirm_password"
+        type="password"
+        required
+      />
+
+      <button type="submit" :disabled="passwordLoading">Change Password</button>
+    </form>
     <p v-if="loading">Saving...</p>
     <p v-if="message">{{ message }}</p>
+    <p v-if="passwordMessage">{{ passwordMessage }}</p>
   </div>
 </template>
 
@@ -49,6 +79,12 @@ interface ProfileData {
   hobbies: number[];
 }
 
+interface PasswordData {
+  old_password: string;
+  new_password: string;
+  confirm_password: string;
+}
+
 export default defineComponent({
   setup() {
     const profileData = ref<ProfileData>({
@@ -60,6 +96,14 @@ export default defineComponent({
     const availableHobbies = ref<Hobby[]>([]);
     const message = ref<string>("");
     const loading = ref<boolean>(false);
+
+    const passwordData = ref<PasswordData>({
+      old_password: "",
+      new_password: "",
+      confirm_password: "",
+    });
+    const passwordMessage = ref<string>("");
+    const passwordLoading = ref<boolean>(false);
 
     onMounted(async () => {
       try {
@@ -119,6 +163,38 @@ export default defineComponent({
       }
     };
 
+    const changePassword = async () => {
+      try {
+        passwordLoading.value = true;
+        const csrfToken = getCookie("csrftoken") || "";
+        const response = await fetch("/api/change-password/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken,
+          },
+          body: JSON.stringify(passwordData.value),
+        });
+        if (response.ok) {
+          passwordMessage.value = "Password updated successfully!";
+          // Clear the password fields after success
+          passwordData.value = {
+            old_password: "",
+            new_password: "",
+            confirm_password: "",
+          };
+        } else {
+          const errorData = await response.json();
+          passwordMessage.value = errorData.error || "Failed to change password.";
+        }
+      } catch (error) {
+        console.error("Error changing password:", error);
+        passwordMessage.value = "An error occurred.";
+      } finally {
+        passwordLoading.value = false;
+      }
+    };
+
     // Helper function to get CSRF token
     const getCookie = (name: string): string | undefined => {
       const value = `; ${document.cookie}`;
@@ -126,7 +202,17 @@ export default defineComponent({
       if (parts.length === 2) return parts.pop()?.split(";").shift();
     };
 
-    return { profileData, availableHobbies, saveProfile, message, loading };
+    return {
+      profileData,
+      availableHobbies,
+      saveProfile,
+      message,
+      loading,
+      passwordData,
+      changePassword,
+      passwordMessage,
+      passwordLoading,
+    };
   },
 });
 </script>

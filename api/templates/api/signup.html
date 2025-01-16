@@ -34,15 +34,60 @@
         a:hover {
             text-decoration: underline;
         }
+        .checkbox-group {
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
     <h2>Create an Account</h2>
     <form method="POST">
         {% csrf_token %}
-        {{ form.as_p }}
+        
+        <!-- Username field -->
+        <label for="username">Username:</label>
+        {{ form.username.errors }}
+        {{ form.username }}<br>
+        
+        <!-- Password fields -->
+        <label for="password1">Password:</label>
+        {{ form.password1.errors }}
+        {{ form.password1 }}<br>
+        <label for="password2">Password confirmation:</label>
+        {{ form.password2.errors }}
+        {{ form.password2 }}<br>
+        
+        <!-- Other fields -->
+        <label for="email">Email Address:</label>
+        {{ form.email.errors }}
+        {{ form.email }}<br>
+        <label for="name">Full Name:</label>
+        {{ form.name.errors }}
+        {{ form.name }}<br>
+        <label for="date_of_birth">Date of Birth:</label>
+        {{ form.date_of_birth.errors }}
+        {{ form.date_of_birth }}<br>
+        
+        <!-- Existing hobbies -->
+        <h3>Select Existing Hobbies:</h3>
+        <div>
+            {% for hobby in form.existing_hobbies %}
+                <label>
+                    {{ hobby.tag }} {{ hobby.choice_label }}
+                </label><br>
+            {% endfor %}
+        </div>
+        {{ form.existing_hobbies.errors }}
+        
+        <!-- New hobbies -->
+        <h3>Add New Hobbies:</h3>
+        {{ form.new_hobbies.errors }}
+        <input type="text" id="new_hobbies" name="new_hobbies" placeholder="Add hobbies separated by commas" />
+        
+        <br><br>
         <button type="submit">Sign Up</button>
     </form>
+    
     <p>Already have an account? <a href="{% url 'api:login' %}">Login here</a>.</p>
 </body>
 </html>
