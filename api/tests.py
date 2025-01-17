@@ -101,3 +101,97 @@ class Tests(StaticLiveServerTestCase):
 
         # Check if login was successful (by checking for presence of a logout button or user profile)
         self.assertIn("Welcome to the Hobbies App", self.driver.page_source)
+        
+    def test4_sendreq(self):
+        # Navigate to registration page
+        self.driver.get(f"{self.live_server_url}/api/login/")
+        time.sleep(2)
+        link = self.driver.find_element("tag name", "a")
+        link.click()
+
+        time.sleep(2)
+
+        # Find the registration form fields and fill them out
+        username_input = self.driver.find_element("name", 'username')
+        email_input = self.driver.find_element("name", 'email')
+        password_input = self.driver.find_element("name", 'password1')
+        name_input = self.driver.find_element("name", 'name')
+        confirm_password_input = self.driver.find_element("name", 'password2')
+        dob_input = self.driver.find_element("name", 'date_of_birth')
+
+        username_input.send_keys('Friend')
+        email_input.send_keys('friend@example.com')
+        password_input.send_keys('Testpassword1')
+        name_input.send_keys("Friend")
+        confirm_password_input.send_keys('Testpassword1')
+        dob_input.send_keys("1990-01-01")
+        
+        time.sleep(2)
+
+        # Submit the form
+        button = self.driver.find_element("tag name", "button")
+        button.click()
+
+        # Wait for the page to load after registration
+        time.sleep(2)
+        
+        # Navigate to login page
+        self.driver.get(f"{self.live_server_url}/api/login/")
+        time.sleep(2)
+
+        # Find the login form fields and fill them out
+        username_input = self.driver.find_element("name", 'username')
+        password_input = self.driver.find_element("name", 'password')
+        username_input.send_keys('Friend')
+        password_input.send_keys('Testpassword1')
+
+        # Submit the form 
+        button = self.driver.find_element("tag name", "button")
+        button.click()
+
+        # Wait for the page to load after login
+        time.sleep(2)
+        
+        # Go to hobbies page
+        self.driver.get(f"{self.live_server_url}/hobbies/")
+        time.sleep(2)
+        
+        # Locate the button element by its text
+        apply_filters_button = self.driver.find_element("xpath", "//button[normalize-space()='Send Friend Request']")        
+        
+    def test5_filter(self):
+        # Navigate to login page
+        self.driver.get(f"{self.live_server_url}/hobbies/")
+        time.sleep(2)
+        
+        minage_input = self.driver.find_element("id", "min-age")
+        maxage_input = self.driver.find_element("id", "max-age")
+        
+        minage_input.send_keys("0")
+        maxage_input.send_keys("10")
+        
+        # Locate the button element by its text
+        apply_filters_button = self.driver.find_element("xpath", "//button[normalize-space()='Apply Filters']")
+
+    def test6_filter(self):
+        #Login to another user
+        # Navigate to login page
+        self.driver.get(f"{self.live_server_url}/api/login/")
+        time.sleep(2)
+
+        # Find the login form fields and fill them out
+        username_input = self.driver.find_element("name", 'username')
+        password_input = self.driver.find_element("name", 'password')
+        username_input.send_keys('TestUser')
+        password_input.send_keys('Testpassword')
+
+        # Submit the form 
+        button = self.driver.find_element("tag name", "button")
+        button.click()
+
+        # Wait for the page to load after login
+        time.sleep(2)
+        
+        # Accept
+        self.driver.get(f"{self.live_server_url}/friend-requests")
+        apply_filters_button = self.driver.find_element("xpath", "//button[normalize-space()='Accept']")
