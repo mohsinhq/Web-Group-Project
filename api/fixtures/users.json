@@ -7,29 +7,18 @@
             "name": "Test User 1",
             "email": "testuser1@example.com",
             "date_of_birth": "2000-01-01",
-            "password": "pbkdf2_sha256$870000$dYP6z390ajJ8mLnddYZ90Y$JkURt7Lnp09lUAw5Jm2sQukG67OJWqqXAxUfILaRoE0="
+            "password": "testpassword"
         }
     },
     {
         "model": "api.CustomUser",
         "pk": 2,
         "fields": {
-            "username":"newuser",
-            "name": "New Guy",
-            "email": "new@example.com",
-            "date_of_birth":"1990-10-20",
-            "password":"newpassword"
-        }
-    },
-    {
-        "model": "api.CustomUser",
-        "pk": 3,
-        "fields": {
             "username": "testuser2",
             "name": "Bob Smith",
             "email": "bob@example.com",
             "date_of_birth": "1990-10-20",
-            "password": "pbkdf2_sha256$870000$grHrRCikcZLGZjG4K4kG7w$+rfgiw3Tj35QfX8UlvlrWYAR1HvtdTvQMhLPiN8bZx8="
+            "password": "testpassword2"
         }
     }
 ]
