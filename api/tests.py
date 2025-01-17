@@ -4,10 +4,13 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
-from django.contrib.staticfiles.testing import LiveServerTestCase
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from django.contrib.auth import get_user_model
+from selenium.webdriver.common.keys import Keys
+import time
 
 
-class Tests(LiveServerTestCase):
+class Tests(StaticLiveServerTestCase):
     fixtures = ['users.json']  # Preload data from the users.json fixture
 
     @classmethod
@@ -21,37 +24,34 @@ class Tests(LiveServerTestCase):
         cls.driver.quit()
         super().tearDownClass()
     
-    # def test_unsuccessful_login(self):
-    #     # Navigate to login page
-    #     self.driver.get(f'{self.live_server_url}/api/login')
+    def test1_unsuccessful_login(self):
+        # Navigate to login page
+        self.driver.get(f'{self.live_server_url}/api/login')
         
-    #     time.sleep(2)
+        time.sleep(2)
 
-    #     # Find the login form fields and fill them out with wrong credentials
-    #     username_input = self.driver.find_element("name", 'username')
-    #     password_input = self.driver.find_element("name", 'password')
-    #     username_input.send_keys('wronguser')
-    #     password_input.send_keys('wrongpassword')
+        # Find the login form fields and fill them out with wrong credentials
+        username_input = self.driver.find_element("name", 'username')
+        password_input = self.driver.find_element("name", 'password')
+        username_input.send_keys('wronguser')
+        password_input.send_keys('wrongpassword')
 
-    #     # Submit the form
-    #     password_input.send_keys(Keys.RETURN)
+        # Submit the form
+        password_input.send_keys(Keys.RETURN)
 
-    #     # Wait for the page to load and check if an error message is displayed
-    #     time.sleep(2)
-    #     self.assertIn("Invalid username or password", self.driver.page_source)
+        # Wait for the page to load and check if an error message is displayed
+        time.sleep(2)
+        self.assertIn("Invalid username or password", self.driver.page_source)
         
-    # def test_protected_page_requires_login(self):
-    #     # Navigate to a page that requires login
-        
-    #     time.sleep(2)
-    #     self.driver.get(f'{self.live_server_url}/profile')
-
-    #     # Check if redirected to login page
-    #     self.assertIn("Login", self.driver.title)
-        
-    def test1_user_registration(self):
+    def test2_user_registration(self):
         # Navigate to registration page
-        self.driver.get(f"{self.live_server_url}/api/signup/")
+        self.driver.get(f"{self.live_server_url}/api/login/")
+        time.sleep(2)
+        
+        # Navigate to next page
+        link = self.driver.find_element("tag name", "a")
+        link.click()
+
         time.sleep(2)
 
         # Find the registration form fields and fill them out
@@ -69,7 +69,7 @@ class Tests(LiveServerTestCase):
         confirm_password_input.send_keys('Testpassword')
         dob_input.send_keys("1990-01-01")
         
-        time.sleep(200)
+        time.sleep(2)
 
         # Submit the form
         button = self.driver.find_element("tag name", "button")
@@ -81,9 +81,9 @@ class Tests(LiveServerTestCase):
         # Check if registration was successful (look for confirmation message)
         self.assertIn("Login", self.driver.page_source)
 
-    def test2_login(self):
+    def test3_login(self):
         # Navigate to login page
-        # self.driver.get(f"{self.live_server_url}/api/login/")
+        self.driver.get(f"{self.live_server_url}/api/login/")
         time.sleep(2)
 
         # Find the login form fields and fill them out
@@ -101,8 +101,3 @@ class Tests(LiveServerTestCase):
 
         # Check if login was successful (by checking for presence of a logout button or user profile)
         self.assertIn("Welcome to the Hobbies App", self.driver.page_source)
-
-
-
-
-

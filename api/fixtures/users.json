@@ -14,6 +14,17 @@
         "model": "api.CustomUser",
         "pk": 2,
         "fields": {
+            "username":"newuser",
+            "name": "New Guy",
+            "email": "new@example.com",
+            "date_of_birth":"1990-10-20",
+            "password":"newpassword"
+        }
+    },
+    {
+        "model": "api.CustomUser",
+        "pk": 3,
+        "fields": {
             "username": "testuser2",
             "name": "Bob Smith",
             "email": "bob@example.com",
