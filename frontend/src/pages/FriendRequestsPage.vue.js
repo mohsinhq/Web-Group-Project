@@ -4,8 +4,8 @@ import { useToast } from "vue-toastification";
 export default defineComponent({
     setup() {
         const requests = ref([]);
-        const loading = ref(false); // Track the loading state for buttons
-        const toast = useToast(); // Initialize toast
+        const loading = ref({}); // Track loading state per request
+        const toast = useToast();
         const fetchRequests = async () => {
             try {
                 const response = await fetch("/api/friend-requests/", { credentials: "include" });
@@ -14,18 +14,18 @@ export default defineComponent({
                     requests.value = data.requests;
                 }
                 else {
-                    toast.error("Failed to fetch friend requests."); // Show error toast
+                    toast.error("Failed to fetch friend requests.");
                     console.error("Failed to fetch friend requests:", await response.text());
                 }
             }
             catch (error) {
-                toast.error("Error fetching friend requests."); // Show error toast
+                toast.error("Error fetching friend requests.");
                 console.error("Error fetching friend requests:", error);
             }
         };
         const respondToRequest = async (requestId, action) => {
             try {
-                loading.value = true; // Set loading state
+                loading.value[requestId] = true; // Set loading state for the specific request
                 const response = await fetch("/api/respond-friend-request/", {
                     method: "POST",
                     headers: {
@@ -36,21 +36,22 @@ export default defineComponent({
                     body: JSON.stringify({ request_id: requestId, action }),
                 });
                 if (response.ok) {
-                    toast.success(`Friend request ${action}ed!`); // Show success toast
-                    await fetchRequests(); // Refresh requests after response
+                    toast.success(`Friend request ${action}ed!`);
+                    // Update requests array to remove the handled request
+                    requests.value = requests.value.filter((req) => req.id !== requestId);
                 }
                 else {
                     const errorData = await response.json();
-                    toast.error(errorData.message || "Error responding to friend request."); // Show error toast
+                    toast.error(errorData.message || "Error responding to friend request.");
                     console.error("Error responding to friend request:", errorData);
                 }
             }
             catch (error) {
-                toast.error("Error responding to friend request."); // Show error toast
+                toast.error("Error responding to friend request.");
                 console.error("Error:", error);
             }
             finally {
-                loading.value = false; // Reset loading state
+                loading.value[requestId] = false; // Reset loading state for the specific request
             }
         };
         const getCsrfToken = () => {
@@ -89,7 +90,7 @@ function __VLS_template() {
                             return;
                         __VLS_ctx.respondToRequest(request.id, 'accept');
                     } },
-                disabled: ((__VLS_ctx.loading)),
+                disabled: ((__VLS_ctx.loading[request.id])),
             });
             __VLS_elementAsFunction(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({
                 ...{ onClick: (...[$event]) => {
@@ -97,7 +98,7 @@ function __VLS_template() {
                             return;
                         __VLS_ctx.respondToRequest(request.id, 'reject');
                     } },
-                disabled: ((__VLS_ctx.loading)),
+                disabled: ((__VLS_ctx.loading[request.id])),
             });
         }
     }

@@ -3,55 +3,48 @@
     <h1>Welcome to the Hobbies App</h1>
     <p v-if="loading">Loading user data...</p>
     <p v-else-if="error" class="error-message">{{ error }}</p>
-    <p v-else>Hello, {{ userData?.name }}</p>
+    <p v-else>Hello, {{ userStore.user?.name }}</p>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref, onMounted } from "vue";
-
-interface Hobby {
-  id: number;
-  name: string;
-}
-
-interface UserData {
-  name: string;
-  email: string;
-  date_of_birth: string;
-  hobbies: Hobby[]; // Reflects ManyToMany hobbies relation
-}
+import { useUserStore } from "../stores/userStore";
 
 export default defineComponent({
-  name: "MainPage", // Adding a component name for better debugging
+  name: "MainPage",
   setup() {
-    const userData = ref<UserData | null>(null);
-    const loading = ref<boolean>(true);
-    const error = ref<string | null>(null);
+    const userStore = useUserStore(); // Access the global user store
+    const loading = ref<boolean>(true); // Manage loading state locally
+    const error = ref<string | null>(null); // Manage error state locally
 
-    const fetchUserData = async () => {
-      try {
-        const response = await fetch("/api/user-data/", { credentials: "include" }); // Correct API path
-        if (response.ok) {
-          const data = await response.json();
-          userData.value = data;
-        } else if (response.status === 401) {
-          error.value = "You are not logged in. Please log in to view your data.";
-        } else {
-          error.value = `Failed to fetch user data: ${response.status} ${response.statusText}`;
-          console.error("Error details:", await response.text());
+    onMounted(async () => {
+      if (!userStore.isLoggedIn) {
+        try {
+          loading.value = true;
+          const response = await fetch("/api/user-data/", { credentials: "include" });
+          if (response.ok) {
+            const data = await response.json();
+            userStore.setUser(data); // Set user in the Pinia store
+          } else if (response.status === 401) {
+            userStore.clearUser();
+            error.value = "You are not logged in. Please log in to view your data.";
+          } else {
+            error.value = `Failed to fetch user data: ${response.statusText}`;
+            console.error("Error fetching user data:", await response.text());
+          }
+        } catch (err) {
+          error.value = "An unexpected error occurred while fetching user data.";
+          console.error("Unexpected error:", err);
+        } finally {
+          loading.value = false;
         }
-      } catch (err) {
-        error.value = "An unexpected error occurred while fetching user data.";
-        console.error("Error fetching user data:", err);
-      } finally {
-        loading.value = false;
+      } else {
+        loading.value = false; // Stop loading if user is already logged in
       }
-    };
+    });
 
-    onMounted(fetchUserData);
-
-    return { userData, loading, error };
+    return { userStore, loading, error };
   },
 });
 </script>

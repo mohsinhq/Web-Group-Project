@@ -1,5 +1,6 @@
 /// <reference types="../../node_modules/.vue-global-types/vue_3.5_false.d.ts" />
 import { defineComponent, ref, onMounted } from "vue";
+import { useUserStore } from "../stores/userStore";
 export default defineComponent({
     name: "ProfilePage",
     setup() {
@@ -19,6 +20,7 @@ export default defineComponent({
         });
         const passwordMessage = ref("");
         const passwordLoading = ref(false);
+        const userStore = useUserStore();
         const fetchUserData = async () => {
             try {
                 const userResponse = await fetch("/api/user-data/", {
@@ -34,6 +36,7 @@ export default defineComponent({
                             ? userData.hobbies.map((hobby) => hobby.id)
                             : [],
                     };
+                    userStore.setUser(userData); // Update the user store
                 }
                 else {
                     message.value = `Failed to fetch user data: ${userResponse.statusText}`;
@@ -69,6 +72,17 @@ export default defineComponent({
                     body: JSON.stringify(profileData.value),
                 });
                 if (response.ok) {
+                    const updatedUserData = await response.json();
+                    // Merge the updated data with the existing user data
+                    if (userStore.user) {
+                        userStore.setUser({
+                            ...userStore.user,
+                            name: updatedUserData.name || userStore.user.name,
+                            email: updatedUserData.email || userStore.user.email,
+                            date_of_birth: updatedUserData.date_of_birth || userStore.user.date_of_birth,
+                            hobbies: updatedUserData.hobbies || userStore.user.hobbies,
+                        });
+                    }
                     message.value = "Profile updated successfully!";
                 }
                 else {

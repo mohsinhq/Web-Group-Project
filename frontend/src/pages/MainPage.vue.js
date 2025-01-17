@@ -1,36 +1,43 @@
 /// <reference types="../../node_modules/.vue-global-types/vue_3.5_false.d.ts" />
 import { defineComponent, ref, onMounted } from "vue";
+import { useUserStore } from "../stores/userStore";
 export default defineComponent({
-    name: "MainPage", // Adding a component name for better debugging
+    name: "MainPage",
     setup() {
-        const userData = ref(null);
-        const loading = ref(true);
-        const error = ref(null);
-        const fetchUserData = async () => {
-            try {
-                const response = await fetch("/api/user-data/", { credentials: "include" }); // Correct API path
-                if (response.ok) {
-                    const data = await response.json();
-                    userData.value = data;
+        const userStore = useUserStore(); // Access the global user store
+        const loading = ref(true); // Manage loading state locally
+        const error = ref(null); // Manage error state locally
+        onMounted(async () => {
+            if (!userStore.isLoggedIn) {
+                try {
+                    loading.value = true;
+                    const response = await fetch("/api/user-data/", { credentials: "include" });
+                    if (response.ok) {
+                        const data = await response.json();
+                        userStore.setUser(data); // Set user in the Pinia store
+                    }
+                    else if (response.status === 401) {
+                        userStore.clearUser();
+                        error.value = "You are not logged in. Please log in to view your data.";
+                    }
+                    else {
+                        error.value = `Failed to fetch user data: ${response.statusText}`;
+                        console.error("Error fetching user data:", await response.text());
+                    }
                 }
-                else if (response.status === 401) {
-                    error.value = "You are not logged in. Please log in to view your data.";
+                catch (err) {
+                    error.value = "An unexpected error occurred while fetching user data.";
+                    console.error("Unexpected error:", err);
                 }
-                else {
-                    error.value = `Failed to fetch user data: ${response.status} ${response.statusText}`;
-                    console.error("Error details:", await response.text());
+                finally {
+                    loading.value = false;
                 }
             }
-            catch (err) {
-                error.value = "An unexpected error occurred while fetching user data.";
-                console.error("Error fetching user data:", err);
+            else {
+                loading.value = false; // Stop loading if user is already logged in
             }
-            finally {
-                loading.value = false;
-            }
-        };
-        onMounted(fetchUserData);
-        return { userData, loading, error };
+        });
+        return { userStore, loading, error };
     },
 });
 ; /* PartiallyEnd: #3632/script.vue */
@@ -53,7 +60,7 @@ function __VLS_template() {
     }
     else {
         __VLS_elementAsFunction(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({});
-        (__VLS_ctx.userData?.name);
+        (__VLS_ctx.userStore.user?.name);
     }
     ['error-message',];
     var __VLS_slots;

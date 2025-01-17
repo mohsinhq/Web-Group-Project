@@ -192,18 +192,31 @@ def respond_friend_request(request: HttpRequest) -> JsonResponse:
                 status=404,
             )
 
-        if action not in ["accept", "reject"]:
-            return JsonResponse(
-                {"status": "error", "message": "Invalid action. Must be 'accept' or 'reject'."},
-                status=400,
-            )
-
         if action == "accept":
             friend_request.status = "accepted"
-            # Create a mutual friendship
-            Friendship.objects.create(user1=request.user, user2=friend_request.from_user)
+            # Check if reverse friend request exists
+            reverse_request = FriendRequest.objects.filter(
+                from_user=friend_request.to_user, to_user=friend_request.from_user
+            ).first()
+            if reverse_request:
+                reverse_request.delete()
+
+            # Create friendship
+            if not Friendship.objects.filter(
+                models.Q(user1=request.user, user2=friend_request.from_user)
+                | models.Q(user1=friend_request.from_user, user2=request.user)
+            ).exists():
+                Friendship.objects.create(user1=request.user, user2=friend_request.from_user)
+
         elif action == "reject":
             friend_request.status = "rejected"
+            # Also reject any reverse friend request
+            reverse_request = FriendRequest.objects.filter(
+                from_user=friend_request.to_user, to_user=friend_request.from_user
+            ).first()
+            if reverse_request:
+                reverse_request.status = "rejected"
+                reverse_request.save()
 
         friend_request.save()
         return JsonResponse(
@@ -215,6 +228,7 @@ def respond_friend_request(request: HttpRequest) -> JsonResponse:
         {"status": "error", "message": "Invalid request method. Only POST is allowed."},
         status=405,
     )
+
 
 
 @login_required
@@ -255,7 +269,6 @@ def main_spa(request):
         return redirect('api:login')  # Redirect to login if user is not authenticated
     return render(request, 'api/spa/index.html')
 
-
 def login_view(request):
     if request.method == "POST":
         form = AuthenticationForm(data=request.POST)
@@ -286,7 +299,6 @@ def hobbies_api(request: HttpRequest) -> JsonResponse:
 def logout_view(request):
     logout(request)
     return redirect(reverse('api:login'))  # Redirect to login after logout
-
 
 
 
