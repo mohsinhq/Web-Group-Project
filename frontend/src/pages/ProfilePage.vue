@@ -69,6 +69,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted } from "vue";
+import { useUserStore } from "../stores/userStore";
 
 interface Hobby {
   id: number;
@@ -109,6 +110,8 @@ export default defineComponent({
     const passwordMessage = ref<string>("");
     const passwordLoading = ref<boolean>(false);
 
+    const userStore = useUserStore();
+
     const fetchUserData = async () => {
       try {
         const userResponse = await fetch("/api/user-data/", {
@@ -124,6 +127,7 @@ export default defineComponent({
               ? userData.hobbies.map((hobby: Hobby) => hobby.id)
               : [],
           };
+          userStore.setUser(userData); // Update the user store
         } else {
           message.value = `Failed to fetch user data: ${userResponse.statusText}`;
         }
@@ -159,18 +163,32 @@ export default defineComponent({
         });
 
         if (response.ok) {
+          const updatedUserData = await response.json();
+
+      // Merge the updated data with the existing user data
+          if (userStore.user) {
+            userStore.setUser({
+              ...userStore.user,
+              name: updatedUserData.name || userStore.user.name,
+              email: updatedUserData.email || userStore.user.email,
+              date_of_birth: updatedUserData.date_of_birth || userStore.user.date_of_birth,
+              hobbies: updatedUserData.hobbies || userStore.user.hobbies,
+            });
+          }
+
           message.value = "Profile updated successfully!";
         } else {
           const errorData = await response.json();
           message.value = errorData.error || "Failed to update profile.";
         }
       } catch (error) {
-        message.value = "Error saving profile.";
+       message.value = "Error saving profile.";
         console.error("Save error:", error);
       } finally {
         loading.value = false;
       }
     };
+
 
     const changePassword = async () => {
       try {

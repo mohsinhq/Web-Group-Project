@@ -1,15 +1,18 @@
 /// <reference types="../node_modules/.vue-global-types/vue_3.5_false.d.ts" />
 import { defineComponent } from "vue";
 import { useToast } from "vue-toastification";
+import { useUserStore } from "./stores/userStore"; // Import Pinia store
 export default defineComponent({
     setup() {
         const toast = useToast();
+        const userStore = useUserStore(); // Access the user store
         const handleLogout = async () => {
             try {
                 const response = await fetch("api/logout", { credentials: "include" });
                 if (response.ok) {
                     toast.success("Successfully logged out!");
-                    window.location.href = "/"; // Redirect to the main page or login page
+                    userStore.clearUser(); // Clear user data in the store
+                    window.location.href = "/"; // Redirect to the login page
                 }
                 else {
                     toast.error("Failed to log out. Please try again.");

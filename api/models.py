@@ -59,9 +59,6 @@ class PageView(models.Model):
 
 
 class FriendRequest(models.Model):
-    """
-    Model to represent friend requests between users.
-    """
     from_user = models.ForeignKey(
         CustomUser, related_name="sent_requests", on_delete=models.CASCADE
     )
@@ -79,21 +76,25 @@ class FriendRequest(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=["from_user", "to_user"], name="unique_friend_request"
-            ),
-            models.UniqueConstraint(
-                fields=["to_user", "from_user"], name="unique_reverse_friend_request"
-            ),
+            )
         ]
         verbose_name_plural = "Friend Requests"
+
+    def save(self, *args, **kwargs):
+        # Automatically delete reverse friend requests when accepting
+        if self.status == "accepted":
+            reverse_request = FriendRequest.objects.filter(
+                from_user=self.to_user, to_user=self.from_user
+            ).first()
+            if reverse_request:
+                reverse_request.delete()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.from_user} -> {self.to_user} ({self.status})"
 
 
 class Friendship(models.Model):
-    """
-    Model to represent friendships between users.
-    """
     user1 = models.ForeignKey(CustomUser, related_name="friends1", on_delete=models.CASCADE)
     user2 = models.ForeignKey(CustomUser, related_name="friends2", on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -102,12 +103,15 @@ class Friendship(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=["user1", "user2"], name="unique_friendship"
-            ),
-            models.UniqueConstraint(
-                fields=["user2", "user1"], name="unique_reverse_friendship"
-            ),
+            )
         ]
         verbose_name_plural = "Friendships"
 
-    def __str__(self):
-        return f"{self.user1.username} - {self.user2.username}"
+    def save(self, *args, **kwargs):
+        # Ensure no duplicate friendship is created
+        if Friendship.objects.filter(
+            models.Q(user1=self.user1, user2=self.user2)
+            | models.Q(user1=self.user2, user2=self.user1)
+        ).exists():
+            raise ValueError("Friendship already exists")
+        super().save(*args, **kwargs)

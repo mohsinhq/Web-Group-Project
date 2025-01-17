@@ -4,10 +4,16 @@
     <ul v-if="requests.length">
       <li v-for="request in requests" :key="request.id">
         <p><strong>From:</strong> {{ request.from_user.name }}</p>
-        <button @click="respondToRequest(request.id, 'accept')" :disabled="loading">
+        <button
+          @click="respondToRequest(request.id, 'accept')"
+          :disabled="loading[request.id]"
+        >
           Accept
         </button>
-        <button @click="respondToRequest(request.id, 'reject')" :disabled="loading">
+        <button
+          @click="respondToRequest(request.id, 'reject')"
+          :disabled="loading[request.id]"
+        >
           Reject
         </button>
       </li>
@@ -29,8 +35,8 @@ interface FriendRequest {
 export default defineComponent({
   setup() {
     const requests = ref<FriendRequest[]>([]);
-    const loading = ref(false); // Track the loading state for buttons
-    const toast = useToast(); // Initialize toast
+    const loading = ref<{ [key: number]: boolean }>({}); // Track loading state per request
+    const toast = useToast();
 
     const fetchRequests = async () => {
       try {
@@ -39,18 +45,18 @@ export default defineComponent({
           const data = await response.json();
           requests.value = data.requests;
         } else {
-          toast.error("Failed to fetch friend requests."); // Show error toast
+          toast.error("Failed to fetch friend requests.");
           console.error("Failed to fetch friend requests:", await response.text());
         }
       } catch (error) {
-        toast.error("Error fetching friend requests."); // Show error toast
+        toast.error("Error fetching friend requests.");
         console.error("Error fetching friend requests:", error);
       }
     };
 
     const respondToRequest = async (requestId: number, action: "accept" | "reject") => {
       try {
-        loading.value = true; // Set loading state
+        loading.value[requestId] = true; // Set loading state for the specific request
         const response = await fetch("/api/respond-friend-request/", {
           method: "POST",
           headers: {
@@ -62,18 +68,19 @@ export default defineComponent({
         });
 
         if (response.ok) {
-          toast.success(`Friend request ${action}ed!`); // Show success toast
-          await fetchRequests(); // Refresh requests after response
+          toast.success(`Friend request ${action}ed!`);
+          // Update requests array to remove the handled request
+          requests.value = requests.value.filter((req) => req.id !== requestId);
         } else {
           const errorData = await response.json();
-          toast.error(errorData.message || "Error responding to friend request."); // Show error toast
+          toast.error(errorData.message || "Error responding to friend request.");
           console.error("Error responding to friend request:", errorData);
         }
       } catch (error) {
-        toast.error("Error responding to friend request."); // Show error toast
+        toast.error("Error responding to friend request.");
         console.error("Error:", error);
       } finally {
-        loading.value = false; // Reset loading state
+        loading.value[requestId] = false; // Reset loading state for the specific request
       }
     };
 
